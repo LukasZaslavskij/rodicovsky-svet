@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "https://rodicovskysvet.cz/o-nas" },
+  authors: [{ name: "Rodičovský svět", url: "https://rodicovskysvet.cz" }],
+  publisher: "Rodičovský svět",
   title: "O nás",
   description: "Příběh za Rodičovským světem – kdo jsme a proč tento blog vznikl.",
 };

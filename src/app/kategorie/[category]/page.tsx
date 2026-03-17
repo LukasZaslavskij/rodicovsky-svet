@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 
+const BASE_URL = "https://rodicovskysvet.cz";
+
 interface Props { params: { category: string } }
 
 export async function generateStaticParams() {
@@ -14,7 +16,23 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cat = getAllCategories().find((c) => c.slug === params.category);
   if (!cat) return {};
-  return { title: cat.label, description: `Příběhy a rady na téma ${cat.label}` };
+  const canonicalUrl = `${BASE_URL}/kategorie/${params.category}`;
+  return {
+    title: cat.label,
+    description: `Příběhy a rady na téma ${cat.label}. Zkušenosti skutečných rodičů.`,
+    keywords: [cat.label, "rodičovství", "výchova dětí", "tipy pro rodiče"],
+    authors: [{ name: "Rodičovský svět", url: BASE_URL }],
+    publisher: "Rodičovský svět",
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      type: "website",
+      locale: "cs_CZ",
+      url: canonicalUrl,
+      siteName: "Rodičovský svět",
+      title: `${cat.label} | Rodičovský svět`,
+      description: `Příběhy a rady na téma ${cat.label}. Zkušenosti skutečných rodičů.`,
+    },
+  };
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -41,8 +59,6 @@ export default function CategoryPage({ params }: Props) {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex gap-8 items-start">
         <div className="flex-1 min-w-0">
-
-          {/* Hlavička kategorie */}
           <div className={`rounded-2xl bg-gradient-to-br ${gradient} p-8 mb-6 flex items-center gap-5`}>
             <span className="text-6xl">{icon}</span>
             <div>
@@ -54,16 +70,10 @@ export default function CategoryPage({ params }: Props) {
             </div>
           </div>
 
-          {/* ADS: Nahraď za AdSense leaderboard 728×90 */}
           <div className="rounded-xl overflow-hidden mb-6 relative hidden md:block">
-            <img
-              src="https://images.unsplash.com/photo-1492725764893-90b379c2b6e7?w=800&h=100&fit=crop&auto=format&q=80"
-              alt=""
-              className="w-full h-[90px] object-cover opacity-60"
-            />
+            <img src="https://images.unsplash.com/photo-1492725764893-90b379c2b6e7?w=800&h=100&fit=crop&auto=format&q=80" alt="" className="w-full h-[90px] object-cover opacity-60" />
           </div>
 
-          {/* Přepnutí kategorií */}
           <div className="flex flex-wrap gap-2 mb-6">
             {categories.filter((c) => c.slug !== params.category).map((c) => (
               <Link key={c.slug} href={`/kategorie/${c.slug}`}
@@ -73,7 +83,6 @@ export default function CategoryPage({ params }: Props) {
             ))}
           </div>
 
-          {/* Články */}
           {articles.length > 0 ? (
             <div className="space-y-3">
               {articles.map((article) => (
@@ -87,11 +96,7 @@ export default function CategoryPage({ params }: Props) {
             </div>
           )}
         </div>
-
-        {/* Sidebar */}
-        <div className="hidden lg:block w-72 flex-shrink-0">
-          <Sidebar />
-        </div>
+        <div className="hidden lg:block w-72 flex-shrink-0"><Sidebar /></div>
       </div>
     </div>
   );

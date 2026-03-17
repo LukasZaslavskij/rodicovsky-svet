@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "https://rodicovskysvet.cz/zasady-ochrany-osobnich-udaju" },
+  authors: [{ name: "Rodičovský svět", url: "https://rodicovskysvet.cz" }],
+  publisher: "Rodičovský svět",
   title: "Zásady ochrany osobních údajů",
   description: "Informace o tom, jak Rodičovský svět zpracovává osobní údaje návštěvníků.",
 };
