@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "O nás",
-  description: "Příběh za Rodičovský světem – kdo jsme a proč tento blog vznikl.",
+  description: "Příběh za Rodičovským světem – kdo jsme a proč tento blog vznikl.",
 };
 
 export default function AboutPage() {
@@ -13,7 +13,7 @@ export default function AboutPage() {
       {/* ── Hero ── */}
       <div className="relative rounded-2xl overflow-hidden mb-12">
         <img
-          src="https://images.unsplash.com/photo-1581952976147-5a2d15560349?w=1000https://images.unsplash.com/photo-1609220136736-443140cfeaa8?w=1000&h=380&fit=crop&auto=format&q=80h=380https://images.unsplash.com/photo-1609220136736-443140cfeaa8?w=1000&h=380&fit=crop&auto=format&q=80fit=crophttps://images.unsplash.com/photo-1609220136736-443140cfeaa8?w=1000&h=380&fit=crop&auto=format&q=80auto=formathttps://images.unsplash.com/photo-1609220136736-443140cfeaa8?w=1000&h=380&fit=crop&auto=format&q=80q=80"
+          src="https://images.unsplash.com/photo-1581952976147-5a2d15560349?w=1000&h=380&fit=crop&auto=format&q=80"
           alt="Rodinná chvíle"
           className="w-full h-[320px] object-cover"
         />
@@ -28,8 +28,6 @@ export default function AboutPage() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-10">
-
-        {/* ── Hlavní text ── */}
         <div className="md:col-span-2 space-y-6">
           <div className="prose prose-lg max-w-none prose-headings:font-serif prose-a:text-[var(--accent)]">
 
@@ -41,7 +39,7 @@ export default function AboutPage() {
               ordinace zavřené.
             </p>
             <p>
-              Googlovaly jsme, četly anglické blogy, ptaly se kamarádek. A přitom nás stále napadalo:
+              Googlovali jsme, četli anglické blogy, ptali se kamarádů. A přitom nás stále napadalo:
               <em> proč o tom někdo nepíše česky? Normálně, bez přehánění, bez zaručených rad?</em>
             </p>
             <p>
@@ -62,8 +60,8 @@ export default function AboutPage() {
 
             <h2>Sdílej svůj příběh</h2>
             <p>
-              Máš příběh, který by pomohl jiné mamince nebo tatínkovi? Napiš nám ho na
-              {" "}<a href="mailto:rodicovskysvet@seznam.cz">rodicovskysvet@seznam.cz</a>.
+              Máš příběh, který by pomohl jiné mamince nebo tatínkovi? Napiš nám ho na{" "}
+              <a href="mailto:rodicovskysvet@seznam.cz">rodicovskysvet@seznam.cz</a>.
               Rádi ho zveřejníme — anonymně nebo se jménem, jak budeš chtít. Každý příběh,
               který otevřeně mluví o rodičovství, pomáhá ostatním cítit se méně sami.
             </p>
@@ -71,10 +69,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* ── Sidebar ── */}
         <aside className="space-y-5">
-
-          {/* Kontaktní box */}
           <div className="bg-[var(--rose)] border border-pink-200 rounded-2xl p-6">
             <h3 className="font-serif text-xl font-bold text-[var(--ink)] mb-2">Máš svůj příběh?</h3>
             <p className="text-sm text-[var(--muted)] leading-relaxed mb-4">
@@ -82,16 +77,12 @@ export default function AboutPage() {
             </p>
             <div className="bg-white rounded-xl px-4 py-3 text-center border border-pink-200">
               <p className="text-xs text-[var(--muted)] mb-1">Kontaktní e-mail</p>
-              <a
-                href="mailto:rodicovskysvet@seznam.cz"
-                className="text-[var(--accent)] font-bold text-sm hover:underline break-all"
-              >
+              <a href="mailto:rodicovskysvet@seznam.cz" className="text-[var(--accent)] font-bold text-sm hover:underline break-all">
                 rodicovskysvet@seznam.cz
               </a>
             </div>
           </div>
 
-          {/* Kontakt */}
           <div className="bg-white border border-[var(--border)] rounded-2xl p-6">
             <h3 className="font-serif text-lg font-bold text-[var(--ink)] mb-4">Kontakt</h3>
             <ul className="space-y-3 text-sm">
@@ -114,16 +105,10 @@ export default function AboutPage() {
             </ul>
           </div>
 
-          {/* Hodnoty */}
           <div className="bg-white border border-[var(--border)] rounded-2xl p-6">
             <h3 className="font-serif text-lg font-bold text-[var(--ink)] mb-4">Naše zásady</h3>
             <ul className="space-y-2.5 text-sm text-[var(--muted)]">
-              {[
-                "Píšeme upřímně, bez přehánění",
-                "Nejsme odborníci, ale rodiče",
-                "Každý příběh respektujeme",
-                "Anonymitu vždy zachováme",
-              ].map((item) => (
+              {["Píšeme upřímně, bez přehánění", "Nejsme odborníci, ale rodiče", "Každý příběh respektujeme", "Anonymitu vždy zachováme"].map((item) => (
                 <li key={item} className="flex items-start gap-2">
                   <span className="text-[var(--accent)] mt-0.5">✓</span>
                   {item}
@@ -131,11 +116,9 @@ export default function AboutPage() {
               ))}
             </ul>
           </div>
-
         </aside>
       </div>
 
-      {/* ── CTA dole ── */}
       <div className="mt-12 bg-gradient-to-br from-pink-50 to-rose-100 rounded-2xl p-8 text-center">
         <p className="text-3xl mb-3">🌸</p>
         <h2 className="font-serif text-2xl font-bold text-[var(--ink)] mb-2">Díky, že jsi tady</h2>

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import type { Metadata } from "next";
+import Comments from "@/components/Comments";
 
 interface Props {
   params: { slug: string };
@@ -171,6 +172,9 @@ export default async function ArticlePage({ params, searchParams }: Props) {
               </div>
             </div>
           </div>
+
+          {/* Komentáře */}
+          <Comments title={article.title} />
 
           {/* Zpět */}
           <div className="mt-8">

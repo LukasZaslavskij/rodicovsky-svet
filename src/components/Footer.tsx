@@ -38,8 +38,17 @@ export default function Footer() {
             </p>
           </div>
         </div>
-        <div className="border-t border-gray-700 pt-6 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} Rodičovský svět — Všechna práva vyhrazena
+        <div className="border-t border-gray-700 pt-6 text-center text-xs text-gray-500 space-y-2">
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <Link href="/zasady-ochrany-osobnich-udaju" className="hover:text-gray-300 transition-colors">
+              Zásady ochrany osobních údajů
+            </Link>
+            <span>·</span>
+            <Link href="/podminky-uzivani" className="hover:text-gray-300 transition-colors">
+              Podmínky užívání
+            </Link>
+          </div>
+          <p>© {new Date().getFullYear()} Rodičovský svět — Všechna práva vyhrazena</p>
         </div>
       </div>
     </footer>
