@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import CookieBanner from "@/components/CookieBanner";
 import { getAllCategories } from "@/lib/articles";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Analytics } from "@vercel/analytics/react";
@@ -61,7 +60,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar categories={categories} />
         <main className="flex-1">{children}</main>
         <Footer />
-        <CookieBanner />
         <Analytics />
       </body>
       <GoogleAnalytics gaId="G-E48T1T4Y5N" />
