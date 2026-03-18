@@ -20,9 +20,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Rodičovský svět", url: BASE_URL }],
   publisher: "Rodičovský svět",
   creator: "Rodičovský svět",
-  alternates: {
-    canonical: BASE_URL,
-  },
+  alternates: { canonical: BASE_URL },
   openGraph: {
     type: "website",
     locale: "cs_CZ",
@@ -51,6 +49,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const categories = getAllCategories();
   return (
     <html lang="cs">
+      <head>
+        {/* Google AdSense */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4364039580277485"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="min-h-screen flex flex-col bg-[var(--paper)] text-[var(--ink)]">
         <Navbar categories={categories} />
         <main className="flex-1">{children}</main>
