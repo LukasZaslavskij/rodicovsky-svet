@@ -105,15 +105,6 @@ export default function AutismusClient() {
     if (hotovo) {
         return (
             <div className="max-w-2xl mx-auto">
-                {/* Upozornění */}
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex gap-3">
-                    <span className="flex-shrink-0">⚠️</span>
-                    <p className="text-sm text-amber-800">
-                        <strong>Důležité:</strong> Toto není diagnóza. Výsledky slouží pouze jako orientační
-                        podklad pro rozhovor s odborníkem.
-                    </p>
-                </div>
-
                 {/* Výsledek */}
                 <div className={`bg-gradient-to-br ${výsledekData.barva} border ${výsledekData.border} rounded-2xl p-7 mb-6`}>
                     <div className="text-5xl mb-3">{výsledekData.emoji}</div>
@@ -123,10 +114,12 @@ export default function AutismusClient() {
                     <p className="text-[var(--muted)] leading-relaxed">{výsledekData.text}</p>
                 </div>
 
-                {/* Skóre */}
+                {/* Skóre + vizuální škála */}
                 <div className="bg-white border border-[var(--border)] rounded-2xl p-5 mb-5">
-                    <h3 className="font-serif text-lg font-bold text-[var(--ink)] mb-3">Přehled odpovědí</h3>
-                    <div className="grid grid-cols-3 gap-3 text-center">
+                    <h3 className="font-serif text-lg font-bold text-[var(--ink)] mb-4">Přehled odpovědí</h3>
+
+                    {/* Počty */}
+                    <div className="grid grid-cols-3 gap-3 text-center mb-5">
                         <div className="bg-green-50 rounded-xl p-3">
                             <p className="text-2xl font-bold text-green-600">{Object.values(odpovědi).filter(v => v === "ano").length}</p>
                             <p className="text-xs text-[var(--muted)] mt-0.5">Ano</p>
@@ -140,6 +133,76 @@ export default function AutismusClient() {
                             <p className="text-xs text-[var(--muted)] mt-0.5">Nevím</p>
                         </div>
                     </div>
+
+                    {/* Vizuální škála */}
+                    <div className="mb-4">
+                        <div className="flex justify-between text-xs text-[var(--muted)] mb-1.5">
+                            <span>Počet odpovědí "Ne": <strong className="text-[var(--ink)]">{početNe} z 20</strong></span>
+                        </div>
+                        <div className="relative h-5 bg-gray-100 rounded-full overflow-hidden">
+                            {/* Barevné zóny */}
+                            <div className="absolute inset-0 flex">
+                                <div className="bg-green-200 opacity-60" style={{ width: "20%" }} />
+                                <div className="bg-amber-200 opacity-60" style={{ width: "20%" }} />
+                                <div className="bg-red-200 opacity-60" style={{ width: "60%" }} />
+                            </div>
+                            {/* Ukazatel */}
+                            <div
+                                className="absolute top-0.5 bottom-0.5 w-3 rounded-full bg-[var(--ink)] shadow transition-all duration-700"
+                                style={{ left: `calc(${Math.min((početNe / 20) * 100, 97)}% - 6px)` }}
+                            />
+                        </div>
+                        {/* Popisky zón */}
+                        <div className="flex text-xs mt-1.5">
+                            <div className="text-green-700 font-medium" style={{ width: "20%" }}>0–3</div>
+                            <div className="text-amber-700 font-medium" style={{ width: "20%" }}>4–7</div>
+                            <div className="text-red-600 font-medium" style={{ width: "60%" }}>8+</div>
+                        </div>
+                    </div>
+
+                    {/* Tabulka pásem */}
+                    <table className="w-full text-sm border-collapse">
+                        <thead>
+                        <tr className="text-left border-b border-[var(--border)]">
+                            <th className="pb-2 font-semibold text-[var(--muted)] text-xs uppercase tracking-wider">Pásmo</th>
+                            <th className="pb-2 font-semibold text-[var(--muted)] text-xs uppercase tracking-wider">Odpovědi "Ne"</th>
+                            <th className="pb-2 font-semibold text-[var(--muted)] text-xs uppercase tracking-wider">Doporučení</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr className={`border-b border-[var(--border)] ${res === "low" ? "bg-green-50" : ""}`}>
+                            <td className="py-2.5 pr-3">
+                                    <span className="flex items-center gap-1.5">
+                                        {res === "low" && <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />}
+                                        <span className={res === "low" ? "font-bold text-green-700" : "text-[var(--muted)]"}>✅ Bez výraznějších odchylek</span>
+                                    </span>
+                            </td>
+                            <td className={`py-2.5 pr-3 ${res === "low" ? "font-bold text-green-700" : "text-[var(--muted)]"}`}>0 – 3</td>
+                            <td className={`py-2.5 ${res === "low" ? "text-green-700" : "text-[var(--muted)]"}`}>Sleduj vývoj, běžná prohlídka</td>
+                        </tr>
+                        <tr className={`border-b border-[var(--border)] ${res === "medium" ? "bg-amber-50" : ""}`}>
+                            <td className="py-2.5 pr-3">
+                                    <span className="flex items-center gap-1.5">
+                                        {res === "medium" && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />}
+                                        <span className={res === "medium" ? "font-bold text-amber-700" : "text-[var(--muted)]"}>⚠️ Stojí za pozornost</span>
+                                    </span>
+                            </td>
+                            <td className={`py-2.5 pr-3 ${res === "medium" ? "font-bold text-amber-700" : "text-[var(--muted)]"}`}>4 – 7</td>
+                            <td className={`py-2.5 ${res === "medium" ? "text-amber-700" : "text-[var(--muted)]"}`}>Konzultace s lékařem</td>
+                        </tr>
+                        <tr className={res === "high" ? "bg-red-50" : ""}>
+                            <td className="py-2.5 pr-3">
+                                    <span className="flex items-center gap-1.5">
+                                        {res === "high" && <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />}
+                                        <span className={res === "high" ? "font-bold text-red-700" : "text-[var(--muted)]"}>🔎 Doporučujeme odborníka</span>
+                                    </span>
+                            </td>
+                            <td className={`py-2.5 pr-3 ${res === "high" ? "font-bold text-red-700" : "text-[var(--muted)]"}`}>8+</td>
+                            <td className={`py-2.5 ${res === "high" ? "text-red-700" : "text-[var(--muted)]"}`}>Odborné vyšetření</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p className="text-xs text-[var(--muted)] mt-3">* Tvoje aktuální skóre je zvýrazněno. Pásma jsou orientační, nezohledňují věk dítěte ani kontext odpovědí.</p>
                 </div>
 
                 {/* Doporučení */}
