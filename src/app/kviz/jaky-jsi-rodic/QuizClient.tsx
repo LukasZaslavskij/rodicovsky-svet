@@ -4,106 +4,66 @@ import { useState } from "react";
 import Link from "next/link";
 
 const OTÁZKY = [
-  {
-    id: 1,
-    text: "Dítě odmítá jíst večeři. Co uděláš?",
-    možnosti: [
-      { text: "Trvám na tom, aby snědlo aspoň trochu.", body: { autoritativni: 2, volny: 0, respektujici: 1 } },
-      { text: "Uvařím mu co chce, ať je klid.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Vysvětlím proč je jídlo důležité a nabídnu alternativu.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Nechám ho, hlad ho naučí.", body: { autoritativni: 1, volny: 1, respektujici: 1 } },
-    ],
-  },
-  {
-    id: 2,
-    text: "Dítě má záchvat vzteku na veřejnosti. Jak reaguješ?",
-    možnosti: [
-      { text: "Okamžitě ho napomenu, ať si to rozmyslí.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
-      { text: "Splním co chce, jen ať přestane.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Kleknu si k němu a čekám až se zklidní.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Odvedl/a ho stranou a ignoroval/a scénu.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
-    ],
-  },
-  {
-    id: 3,
-    text: "Dítě dostalo špatnou známku ve škole. Tvoje reakce?",
-    možnosti: [
-      { text: "Zákaz obrazovek dokud to nezlepší.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
-      { text: "Nevadí, příště to bude lepší.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Pobavíme se co bylo těžké a jak to příště zkusit jinak.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Nabídnu pomoc s učením ale netlačím.", body: { autoritativni: 0, volny: 1, respektujici: 1 } },
-    ],
-  },
-  {
-    id: 4,
-    text: "Jak řešíte pravidla doma?",
-    možnosti: [
-      { text: "Pravidla platí a hotovo, diskuse nepřipadá v úvahu.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
-      { text: "Pravidla moc nemáme, chci aby bylo doma volně.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Pravidla tvoříme společně a vysvětlujeme proč existují.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Máme pár základních pravidel, zbytek řešíme podle situace.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
-    ],
-  },
-  {
-    id: 5,
-    text: "Dítě chce zůstat déle vzhůru. Je večer a zítra je školní den.",
-    možnosti: [
-      { text: "Absolutně ne, spánek je spánek.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
-      { text: "Dobře, jednou nevadí.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Domluvíme se na kompromisu — 15 minut navíc.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Záleží jak se dítě cítí, někdy povolím.", body: { autoritativni: 0, volny: 1, respektujici: 1 } },
-    ],
-  },
-  {
-    id: 6,
-    text: "Dítě říká: 'Nechci do školky.' Co odpovíš?",
-    možnosti: [
-      { text: "Musíš jít, tečka.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
-      { text: "Tak zůstaň doma, ať se mi nepláče.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Ptám se proč nechce a snažím se pochopit.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Motivuji ho něčím hezkým co ho tam čeká.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
-    ],
-  },
-  {
-    id: 7,
-    text: "Jak reaguješ když je dítě smutné bez zjevného důvodu?",
-    možnosti: [
-      { text: "Řeknu ať se vzpamatuje, nic se nestalo.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
-      { text: "Dám mu co chce, aby se rozveselilo.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Sednu si k němu a dám mu prostor to vyjádřit.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Snažím se ho rozptýlit aktivitou.", body: { autoritativni: 0, volny: 1, respektujici: 1 } },
-    ],
-  },
-  {
-    id: 8,
-    text: "Dítě udělalo něco špatně. Jak ho potrestal/a?",
-    možnosti: [
-      { text: "Tresty jsou důležité — kout nebo zákaz oblíbené věci.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
-      { text: "Moc netrestám, nechci aby mě mělo za zlého.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Proberu s ním co se stalo a co udělá příště jinak.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Záleží na situaci, přistupuji k tomu individuálně.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
-    ],
-  },
-  {
-    id: 9,
-    text: "Dítě chce rozhodovat samo (oblečení, aktivity). Jak to vnímáš?",
-    možnosti: [
-      { text: "Rozhoduji já, na to je ještě brzo.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
-      { text: "Ať si dělá co chce, je to jeho život.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Dávám mu možnost volby v rámci rozumných hranic.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Někdy ano, někdy ne — podle toho co je v sázce.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
-    ],
-  },
-  {
-    id: 10,
-    text: "Co pro tebe jako rodiče znamená úspěch?",
-    možnosti: [
-      { text: "Dítě je poslušné a respektuje autoritu.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
-      { text: "Dítě je šťastné a má hezké dětství.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
-      { text: "Dítě umí vyjádřit emoce a rozumí samo sobě.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
-      { text: "Dítě je samostatné a připravené na život.", body: { autoritativni: 1, volny: 1, respektujici: 1 } },
-    ],
-  },
+  { id: 1, text: "Dítě odmítá jíst večeři. Co uděláš?", možnosti: [
+    { text: "Trvám na tom, aby snědlo aspoň trochu.", body: { autoritativni: 2, volny: 0, respektujici: 1 } },
+    { text: "Uvařím mu co chce, ať je klid.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Vysvětlím proč je jídlo důležité a nabídnu alternativu.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Nechám ho, hlad ho naučí.", body: { autoritativni: 1, volny: 1, respektujici: 1 } },
+  ]},
+  { id: 2, text: "Dítě má záchvat vzteku na veřejnosti. Jak reaguješ?", možnosti: [
+    { text: "Okamžitě ho napomenu, ať si to rozmyslí.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
+    { text: "Splním co chce, jen ať přestane.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Kleknu si k němu a čekám až se zklidní.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Odvedl/a ho stranou a ignoroval/a scénu.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
+  ]},
+  { id: 3, text: "Dítě dostalo špatnou známku ve škole. Tvoje reakce?", možnosti: [
+    { text: "Zákaz obrazovek dokud to nezlepší.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
+    { text: "Nevadí, příště to bude lepší.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Pobavíme se co bylo těžké a jak to příště zkusit jinak.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Nabídnu pomoc s učením ale netlačím.", body: { autoritativni: 0, volny: 1, respektujici: 1 } },
+  ]},
+  { id: 4, text: "Jak řešíte pravidla doma?", možnosti: [
+    { text: "Pravidla platí a hotovo, diskuse nepřipadá v úvahu.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
+    { text: "Pravidla moc nemáme, chci aby bylo doma volně.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Pravidla tvoříme společně a vysvětlujeme proč existují.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Máme pár základních pravidel, zbytek řešíme podle situace.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
+  ]},
+  { id: 5, text: "Dítě chce zůstat déle vzhůru. Je večer a zítra je školní den.", možnosti: [
+    { text: "Absolutně ne, spánek je spánek.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
+    { text: "Dobře, jednou nevadí.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Domluvíme se na kompromisu — 15 minut navíc.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Záleží jak se dítě cítí, někdy povolím.", body: { autoritativni: 0, volny: 1, respektujici: 1 } },
+  ]},
+  { id: 6, text: "Dítě říká: 'Nechci do školky.' Co odpovíš?", možnosti: [
+    { text: "Musíš jít, tečka.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
+    { text: "Tak zůstaň doma, ať se mi nepláče.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Ptám se proč nechce a snažím se pochopit.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Motivuji ho něčím hezkým co ho tam čeká.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
+  ]},
+  { id: 7, text: "Jak reaguješ když je dítě smutné bez zjevného důvodu?", možnosti: [
+    { text: "Řeknu ať se vzpamatuje, nic se nestalo.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
+    { text: "Dám mu co chce, aby se rozveselilo.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Sednu si k němu a dám mu prostor to vyjádřit.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Snažím se ho rozptýlit aktivitou.", body: { autoritativni: 0, volny: 1, respektujici: 1 } },
+  ]},
+  { id: 8, text: "Dítě udělalo něco špatně. Jak ho potrestáš?", možnosti: [
+    { text: "Tresty jsou důležité — kout nebo zákaz oblíbené věci.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
+    { text: "Moc netrestám, nechci aby mě mělo za zlého.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Proberu s ním co se stalo a co udělá příště jinak.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Záleží na situaci, přistupuji k tomu individuálně.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
+  ]},
+  { id: 9, text: "Dítě chce rozhodovat samo (oblečení, aktivity). Jak to vnímáš?", možnosti: [
+    { text: "Rozhoduji já, na to je ještě brzo.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
+    { text: "Ať si dělá co chce, je to jeho život.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Dávám mu možnost volby v rámci rozumných hranic.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Někdy ano, někdy ne — podle toho co je v sázce.", body: { autoritativni: 1, volny: 0, respektujici: 1 } },
+  ]},
+  { id: 10, text: "Co pro tebe jako rodiče znamená úspěch?", možnosti: [
+    { text: "Dítě je poslušné a respektuje autoritu.", body: { autoritativni: 2, volny: 0, respektujici: 0 } },
+    { text: "Dítě je šťastné a má hezké dětství.", body: { autoritativni: 0, volny: 2, respektujici: 0 } },
+    { text: "Dítě umí vyjádřit emoce a rozumí samo sobě.", body: { autoritativni: 0, volny: 0, respektujici: 2 } },
+    { text: "Dítě je samostatné a připravené na život.", body: { autoritativni: 1, volny: 1, respektujici: 1 } },
+  ]},
 ];
 
 const VÝSLEDKY = {
@@ -150,7 +110,6 @@ export default function QuizClient() {
       setSkóre(nové);
       setOdpovědi([...odpovědi, index]);
       setVybraná(null);
-
       if (aktuální + 1 >= OTÁZKY.length) {
         setHotovo(true);
       } else {
@@ -161,7 +120,18 @@ export default function QuizClient() {
 
   const výsledekTyp = Object.entries(skóre).reduce((a, b) => a[1] > b[1] ? a : b)[0] as keyof typeof VÝSLEDKY;
   const výsledek = VÝSLEDKY[výsledekTyp];
-  const progress = ((aktuální) / OTÁZKY.length) * 100;
+  const progress = (aktuální / OTÁZKY.length) * 100;
+
+  const sdílet = () => {
+    const url = "https://rodicovskysvet.cz/kviz/jaky-jsi-rodic";
+    const text = `Jsem ${výsledek.typ} ${výsledek.emoji}! Zjisti i ty jaký jsi typ rodiče.`;
+    if (navigator.share) {
+      navigator.share({ title: "Jaký jsi typ rodiče?", text, url });
+    } else {
+      navigator.clipboard.writeText(url);
+      alert("Odkaz zkopírován!");
+    }
+  };
 
   if (hotovo) {
     return (
@@ -185,8 +155,7 @@ export default function QuizClient() {
           </ul>
         </div>
 
-        {/* Skóre */}
-        <div className="bg-white border border-[var(--border)] rounded-2xl p-6 mb-8">
+        <div className="bg-white border border-[var(--border)] rounded-2xl p-6 mb-6">
           <h3 className="font-serif text-lg font-bold text-[var(--ink)] mb-4">Tvoje skóre</h3>
           {Object.entries(skóre).map(([typ, body]) => {
             const max = 20;
@@ -199,10 +168,7 @@ export default function QuizClient() {
                   <span className="text-[var(--muted)]">{procent}%</span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
-                    style={{ width: `${procent}%` }}
-                  />
+                  <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${procent}%` }} />
                 </div>
               </div>
             );
@@ -214,28 +180,30 @@ export default function QuizClient() {
           <p className="font-serif font-bold text-[var(--ink)] mb-3">📤 Sdílej svůj výsledek</p>
           <div className="flex flex-wrap gap-2">
             <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=https://rodicovskysvet.cz/kviz/jaky-jsi-rodic&quote=Jsem ${encodeURIComponent(výsledek.typ + " " + výsledek.emoji)}! Zjisti i ty jaký jsi typ rodiče.`}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`https://www.facebook.com/sharer/sharer.php?u=https://rodicovskysvet.cz/kviz/jaky-jsi-rodic`}
+              target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 bg-[#1877F2] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               Facebook
             </a>
             <a
-              href={`https://twitter.com/intent/tweet?text=Jsem ${encodeURIComponent(výsledek.typ + " " + výsledek.emoji + "! Zjisti i ty jaký jsi typ rodiče na rodicovskysvet.cz/kviz/jaky-jsi-rodic")}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Jsem " + výsledek.typ + " " + výsledek.emoji + "! Zjisti i ty jaký jsi typ rodiče.")}&url=https://rodicovskysvet.cz/kviz/jaky-jsi-rodic`}
+              target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               X (Twitter)
             </a>
             <button
-              onClick={() => {
-                navigator.clipboard.writeText("https://rodicovskysvet.cz/kviz/jaky-jsi-rodic");
-                alert("Odkaz zkopírován!");
-              }}
+              onClick={sdílet}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              Instagram
+            </button>
+            <button
+              onClick={() => { navigator.clipboard.writeText("https://rodicovskysvet.cz/kviz/jaky-jsi-rodic"); alert("Odkaz zkopírován!"); }}
               className="flex items-center gap-2 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-semibold text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
@@ -263,21 +231,16 @@ export default function QuizClient() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Progress */}
       <div className="mb-6">
         <div className="flex justify-between text-sm text-[var(--muted)] mb-2">
           <span>Otázka {aktuální + 1} z {OTÁZKY.length}</span>
           <span>{Math.round(progress)}%</span>
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[var(--accent)] rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+          <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
-      {/* Otázka */}
       <div className="bg-white border border-[var(--border)] rounded-2xl p-6 md:p-8 mb-4">
         <h2 className="font-serif text-xl md:text-2xl font-bold text-[var(--ink)] mb-6 leading-snug">
           {otázka.text}
