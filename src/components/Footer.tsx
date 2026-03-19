@@ -32,9 +32,15 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">O blogu</h4>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              Obsah na tomto webu je informačního charakteru a nenahrazuje radu lékaře nebo odborníka.
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Další</h4>
+            <ul className="space-y-1.5">
+              <li><a href="/kviz" className="text-sm text-gray-300 hover:text-white transition-colors">🎯 Kvízy pro rodiče</a></li>
+              <li><a href="/o-nas" className="text-sm text-gray-300 hover:text-white transition-colors">👨‍👩‍👧 O nás</a></li>
+              <li><a href="/zasady-ochrany-osobnich-udaju" className="text-sm text-gray-300 hover:text-white transition-colors">Ochrana osobních údajů</a></li>
+              <li><a href="/podminky-uzivani" className="text-sm text-gray-300 hover:text-white transition-colors">Podmínky užívání</a></li>
+            </ul>
+            <p className="text-xs text-gray-500 mt-4 leading-relaxed">
+              Obsah webu nenahrazuje radu lékaře nebo odborníka.
             </p>
           </div>
         </div>

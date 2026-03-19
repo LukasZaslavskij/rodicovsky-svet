@@ -14,16 +14,19 @@ export default function HomePage() {
         {/* ── Hlavní obsah ── */}
         <div className="flex-1 min-w-0">
 
-          {/* ADS: Banner 728×90 – nahraď za AdSense leaderboard */}
-          <div className="rounded-xl overflow-hidden mb-8 relative hidden md:block">
-            <img
-              src="https://images.unsplash.com/photo-1492725764893-90b379c2b6e7?w=800&h=120&fit=crop&auto=format&q=80"
-              alt="Rodič s dítětem"
-              className="w-full h-[100px] object-cover object-top"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent flex items-center px-6">
-              <p className="text-white font-serif font-bold text-lg">Vítej na Rodičovském světě 🌸</p>
-            </div>
+          {/* Kvíz promo banner */}
+          <div className="mb-8">
+            <a href="/kviz/jaky-jsi-rodic" className="group block">
+              <div className="rounded-2xl bg-gradient-to-r from-[var(--rose)] to-pink-100 border border-pink-200 p-5 flex items-center gap-5 hover:border-[var(--accent)] transition-colors">
+                <div className="text-5xl flex-shrink-0">🎯</div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--accent)] mb-0.5">Nový kvíz</p>
+                  <p className="font-serif font-bold text-lg text-[var(--ink)] group-hover:text-[var(--accent)] transition-colors">Jaký jsi typ rodiče?</p>
+                  <p className="text-sm text-[var(--muted)] mt-0.5">10 otázek · 3 minuty · zjisti svůj rodičovský styl</p>
+                </div>
+                <span className="text-[var(--accent)] font-bold text-sm flex-shrink-0 group-hover:translate-x-1 transition-transform">→</span>
+              </div>
+            </a>
           </div>
 
           {/* Vybraný článek */}

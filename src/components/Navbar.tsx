@@ -131,6 +131,10 @@ export default function Navbar({ categories }: { categories: Category[] }) {
             ))}
           </ul>
           <div className="flex items-center gap-3 pl-4 border-l border-[var(--border)]">
+            <Link href="/kviz" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname.startsWith("/kviz") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
+              <span>🎯</span> Kvízy
+            </Link>
+            <span className="text-[var(--border)]">|</span>
             <Link href="/o-nas" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname === "/o-nas" ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
               <span>👨‍👩‍👧</span> O nás
             </Link>
@@ -159,7 +163,10 @@ export default function Navbar({ categories }: { categories: Category[] }) {
                 </Link>
               ))}
             </div>
-            <div className="pt-2 border-t border-[var(--border)]">
+            <div className="pt-2 border-t border-[var(--border)] flex gap-2 flex-wrap">
+              <Link href="/kviz" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
+                🎯 Kvízy
+              </Link>
               <Link href="/o-nas" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
                 👨‍👩‍👧 O nás
               </Link>
