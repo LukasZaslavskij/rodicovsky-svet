@@ -34,13 +34,6 @@ export const metadata: Metadata = {
     siteName: "Rodičovský svět",
     title: "Rodičovský svět – Příběhy pro každého rodiče",
     description: "Příběhy a rady pro rodiče. Spánek, jídlo, výchova, školka a vše, co k rodičovství patří.",
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon.png", type: "image/png", sizes: "512x512" },
-    ],
-    apple: { url: "/favicon-180.png", sizes: "180x180", type: "image/png" },
-  },
   },
   twitter: {
     card: "summary_large_image",
