@@ -15,6 +15,13 @@ export const metadata: Metadata = {
     template: "%s | Rodičovský svět",
   },
   description: "Příběhy a rady pro rodiče. Spánek, jídlo, výchova, školka a vše, co k rodičovství patří.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: { url: "/favicon-180.png", sizes: "180x180", type: "image/png" },
+  },
   keywords: ["rodičovství", "výchova dětí", "spánek miminka", "vybíravé jídlo děti", "záchvat vzteku toddler", "školka adaptace", "nemoci dětí", "sourozenci", "mateřství", "tipy pro rodiče"],
   authors: [{ name: "Rodičovský svět", url: BASE_URL }],
   publisher: "Rodičovský svět",
@@ -27,6 +34,13 @@ export const metadata: Metadata = {
     siteName: "Rodičovský svět",
     title: "Rodičovský svět – Příběhy pro každého rodiče",
     description: "Příběhy a rady pro rodiče. Spánek, jídlo, výchova, školka a vše, co k rodičovství patří.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: { url: "/favicon-180.png", sizes: "180x180", type: "image/png" },
+  },
   },
   twitter: {
     card: "summary_large_image",

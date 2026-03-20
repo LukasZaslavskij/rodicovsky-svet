@@ -160,48 +160,30 @@ export default function AutismusClient() {
                         </div>
                     </div>
 
-                    {/* Tabulka pásem */}
-                    <table className="w-full text-sm border-collapse">
-                        <thead>
-                        <tr className="text-left border-b border-[var(--border)]">
-                            <th className="pb-2 font-semibold text-[var(--muted)] text-xs uppercase tracking-wider">Pásmo</th>
-                            <th className="pb-2 font-semibold text-[var(--muted)] text-xs uppercase tracking-wider">Odpovědi "Ne"</th>
-                            <th className="pb-2 font-semibold text-[var(--muted)] text-xs uppercase tracking-wider">Doporučení</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr className={`border-b border-[var(--border)] ${res === "low" ? "bg-green-50" : ""}`}>
-                            <td className="py-2.5 pr-3">
-                                    <span className="flex items-center gap-1.5">
-                                        {res === "low" && <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />}
-                                        <span className={res === "low" ? "font-bold text-green-700" : "text-[var(--muted)]"}>✅ Bez výraznějších odchylek</span>
+                    {/* Přehled pásem */}
+                    <div className="space-y-2">
+                        <div className="grid grid-cols-3 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider pb-1 border-b border-[var(--border)]">
+                            <div>Pásmo</div>
+                            <div>Odpovědi "Ne"</div>
+                            <div>Doporučení</div>
+                        </div>
+                        {[
+                            { key: "low", emoji: "✅", label: "Bez odchylek", range: "0 – 3", tip: "Sleduj vývoj", color: "green", bg: "bg-green-50", text: "text-green-700", dot: "bg-green-500" },
+                            { key: "medium", emoji: "⚠️", label: "Stojí za pozornost", range: "4 – 7", tip: "Konzultace s lékařem", color: "amber", bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
+                            { key: "high", emoji: "🔎", label: "Doporučujeme odborníka", range: "8+", tip: "Odborné vyšetření", color: "red", bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500" },
+                        ].map((row) => (
+                            <div key={row.key} className={`grid grid-cols-3 gap-2 py-2.5 px-2 rounded-lg text-sm ${res === row.key ? row.bg : ""}`}>
+                                <div className="flex items-center gap-1.5">
+                                    {res === row.key && <span className={`w-2 h-2 rounded-full flex-shrink-0 ${row.dot}`} />}
+                                    <span className={res === row.key ? `font-bold ${row.text}` : "text-[var(--muted)]"}>
+                                        {row.emoji} {row.label}
                                     </span>
-                            </td>
-                            <td className={`py-2.5 pr-3 ${res === "low" ? "font-bold text-green-700" : "text-[var(--muted)]"}`}>0 – 3</td>
-                            <td className={`py-2.5 ${res === "low" ? "text-green-700" : "text-[var(--muted)]"}`}>Sleduj vývoj, běžná prohlídka</td>
-                        </tr>
-                        <tr className={`border-b border-[var(--border)] ${res === "medium" ? "bg-amber-50" : ""}`}>
-                            <td className="py-2.5 pr-3">
-                                    <span className="flex items-center gap-1.5">
-                                        {res === "medium" && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />}
-                                        <span className={res === "medium" ? "font-bold text-amber-700" : "text-[var(--muted)]"}>⚠️ Stojí za pozornost</span>
-                                    </span>
-                            </td>
-                            <td className={`py-2.5 pr-3 ${res === "medium" ? "font-bold text-amber-700" : "text-[var(--muted)]"}`}>4 – 7</td>
-                            <td className={`py-2.5 ${res === "medium" ? "text-amber-700" : "text-[var(--muted)]"}`}>Konzultace s lékařem</td>
-                        </tr>
-                        <tr className={res === "high" ? "bg-red-50" : ""}>
-                            <td className="py-2.5 pr-3">
-                                    <span className="flex items-center gap-1.5">
-                                        {res === "high" && <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />}
-                                        <span className={res === "high" ? "font-bold text-red-700" : "text-[var(--muted)]"}>🔎 Doporučujeme odborníka</span>
-                                    </span>
-                            </td>
-                            <td className={`py-2.5 pr-3 ${res === "high" ? "font-bold text-red-700" : "text-[var(--muted)]"}`}>8+</td>
-                            <td className={`py-2.5 ${res === "high" ? "text-red-700" : "text-[var(--muted)]"}`}>Odborné vyšetření</td>
-                        </tr>
-                        </tbody>
-                    </table>
+                                </div>
+                                <div className={res === row.key ? `font-bold ${row.text}` : "text-[var(--muted)]"}>{row.range}</div>
+                                <div className={res === row.key ? row.text : "text-[var(--muted)]"}>{row.tip}</div>
+                            </div>
+                        ))}
+                    </div>
                     <p className="text-xs text-[var(--muted)] mt-3">* Tvoje aktuální skóre je zvýrazněno. Pásma jsou orientační, nezohledňují věk dítěte ani kontext odpovědí.</p>
                 </div>
 
