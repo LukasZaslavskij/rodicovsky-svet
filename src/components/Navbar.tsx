@@ -137,6 +137,9 @@ export default function Navbar({ categories }: { categories: Category[] }) {
             <Link href="/dotazniky" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname.startsWith("/dotazniky") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
               <span>📋</span> Dotazníky
             </Link>
+            <Link href="/generatory" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname.startsWith("/generatory") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
+              <span>✨</span> Generátory
+            </Link>
             <span className="text-[var(--border)]">|</span>
             <Link href="/o-nas" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname === "/o-nas" ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
               <span>👨‍👩‍👧</span> O nás
@@ -172,6 +175,9 @@ export default function Navbar({ categories }: { categories: Category[] }) {
               </Link>
               <Link href="/dotazniky" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
                 📋 Dotazníky
+              </Link>
+              <Link href="/generatory" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
+                ✨ Generátory
               </Link>
               <Link href="/o-nas" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
                 👨‍👩‍👧 O nás

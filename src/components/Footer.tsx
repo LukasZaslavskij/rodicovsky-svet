@@ -36,6 +36,7 @@ export default function Footer() {
             <ul className="space-y-1.5">
               <li><a href="/kviz" className="text-sm text-gray-300 hover:text-white transition-colors">🎯 Kvízy pro rodiče</a></li>
               <li><a href="/dotazniky" className="text-sm text-gray-300 hover:text-white transition-colors">📋 Orientační dotazníky</a></li>
+              <li><a href="/generatory" className="text-sm text-gray-300 hover:text-white transition-colors">✨ Generátory</a></li>
               <li><a href="/o-nas" className="text-sm text-gray-300 hover:text-white transition-colors">👨‍👩‍👧 O nás</a></li>
               <li><a href="/zasady-ochrany-osobnich-udaju" className="text-sm text-gray-300 hover:text-white transition-colors">Ochrana osobních údajů</a></li>
               <li><a href="/podminky-uzivani" className="text-sm text-gray-300 hover:text-white transition-colors">Podmínky užívání</a></li>
