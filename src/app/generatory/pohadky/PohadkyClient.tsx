@@ -59,13 +59,17 @@ Pravidla:
 - Nepoužívej markdown (žádné *, #, atd.)`;
 
         try {
-            const maxTokens = délka === "5" ? 12000 : délka === "3" ? 6000 : 1500;
+            const maxTokens = délka === "5" ? 12000 : délka === "3" ? 6000 : 4500;
+
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
             const response = await fetch(
                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    signal: controller.signal,
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: prompt }] }],
                         generationConfig: {
@@ -75,6 +79,7 @@ Pravidla:
                     }),
                 }
             );
+            clearTimeout(timeout);
 
             const data = await response.json();
             const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -86,8 +91,12 @@ Pravidla:
             } else {
                 setChyba("Nepodařilo se vygenerovat pohádku. Zkus to prosím znovu.");
             }
-        } catch {
-            setChyba("Nastala chyba při generování. Zkontroluj připojení a zkus znovu.");
+        } catch (err: unknown) {
+            if (err instanceof Error && err.name === "AbortError") {
+                setChyba("Generování trvalo příliš dlouho. Zkus to znovu nebo vyber kratší pohádku.");
+            } else {
+                setChyba("Nastala chyba při generování. Zkontroluj připojení a zkus znovu.");
+            }
         } finally {
             setNačítá(false);
         }
