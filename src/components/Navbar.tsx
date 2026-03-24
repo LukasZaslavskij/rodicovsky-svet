@@ -5,201 +5,203 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 
 interface Category {
-  slug: string;
-  label: string;
-  count: number;
+    slug: string;
+    label: string;
+    count: number;
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  spanek: "🌙",
-  jidlo: "🥣",
-  sourozenci: "👧🏻",
-  "zachvaty-vzteku": "🌪️",
-  skolka: "🏫",
-  nemoci: "🌡️",
-  vychova: "💛",
+    spanek: "🌙",
+    jidlo: "🥣",
+    sourozenci: "👧🏻",
+    "zachvaty-vzteku": "🌪️",
+    skolka: "🏫",
+    nemoci: "🌡️",
+    vychova: "💛",
 };
 
 // Květ pro SVG dekoraci
 function Flower({ x, y, r, opacity }: { x: number; y: number; r: number; opacity: number }) {
-  const petals = [0, 72, 144, 216, 288].map((angle) => {
-    const rad = (angle * Math.PI) / 180;
-    return { cx: x + Math.round(Math.sin(rad) * r * 2.2), cy: y - Math.round(Math.cos(rad) * r * 2.2) };
-  });
-  return (
-    <g opacity={opacity}>
-      {petals.map((p, i) => <circle key={i} cx={p.cx} cy={p.cy} r={r} fill="#c9607a" />)}
-      <circle cx={x} cy={y} r={r * 0.9} fill="#e8a0b0" />
-    </g>
-  );
+    const petals = [0, 72, 144, 216, 288].map((angle) => {
+        const rad = (angle * Math.PI) / 180;
+        return { cx: x + Math.round(Math.sin(rad) * r * 2.2), cy: y - Math.round(Math.cos(rad) * r * 2.2) };
+    });
+    return (
+        <g opacity={opacity}>
+            {petals.map((p, i) => <circle key={i} cx={p.cx} cy={p.cy} r={r} fill="#c9607a" />)}
+            <circle cx={x} cy={y} r={r * 0.9} fill="#e8a0b0" />
+        </g>
+    );
 }
 
 export default function Navbar({ categories }: { categories: Category[] }) {
-  const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [clankyOpen, setClankyOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+    const pathname = usePathname();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [clankyOpen, setClankyOpen] = useState(false);
 
-  const smallFlowers = [150, 250, 380, 480, 620, 720, 860, 960, 1100, 1200];
-  const dots = [190, 290, 440, 540, 680, 780, 920, 1020, 1150];
+    // OPRAVA: Změněno z HTMLDivElement na HTMLLIElement
+    const dropdownRef = useRef<HTMLLIElement>(null);
 
-  // Zavři dropdown při kliknutí mimo
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setClankyOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+    const smallFlowers = [150, 250, 380, 480, 620, 720, 860, 960, 1100, 1200];
+    const dots = [190, 290, 440, 540, 680, 780, 920, 1020, 1150];
 
-  const linkClass = (active: boolean) =>
-    `px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
-      active ? "bg-[var(--rose)] text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"
-    }`;
+    // Zavři dropdown při kliknutí mimo
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setClankyOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
 
-  const isArticlePath = pathname === "/" || pathname.startsWith("/kategorie") || pathname.startsWith("/clanky");
+    const linkClass = (active: boolean) =>
+        `px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+            active ? "bg-[var(--rose)] text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"
+        }`;
 
-  return (
-    <header className="bg-white border-b border-[var(--border)] sticky top-0 z-50 shadow-sm">
+    const isArticlePath = pathname === "/" || pathname.startsWith("/kategorie") || pathname.startsWith("/clanky");
 
-      {/* ── Masthead ── */}
-      <div
-        className="relative overflow-hidden py-5 text-center"
-        style={{ background: "linear-gradient(135deg, #f2dde4 0%, #fdf8f5 40%, #f2dde4 100%)" }}
-      >
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1400 90" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          <Flower x={65} y={45} r={10} opacity={0.14} />
-          <Flower x={1335} y={45} r={10} opacity={0.14} />
-          <Flower x={200} y={20} r={6} opacity={0.12} />
-          <Flower x={1200} y={20} r={6} opacity={0.12} />
-          <Flower x={350} y={70} r={5} opacity={0.10} />
-          <Flower x={1050} y={70} r={5} opacity={0.10} />
-          {smallFlowers.map((x, i) => <Flower key={i} x={x} y={i % 2 === 0 ? 15 : 72} r={4} opacity={0.13} />)}
-          <g opacity="0.12" stroke="#c9607a" strokeWidth="1.5" fill="none" strokeLinecap="round">
-            <path d="M110,75 Q130,55 155,68 Q175,80 195,62" />
-            <path d="M128,78 Q133,63 143,70" />
-            <path d="M163,74 Q168,60 178,67" />
-          </g>
-          <g opacity="0.12" stroke="#c9607a" strokeWidth="1.5" fill="none" strokeLinecap="round">
-            <path d="M1290,75 Q1270,55 1245,68 Q1225,80 1205,62" />
-            <path d="M1272,78 Q1267,63 1257,70" />
-            <path d="M1237,74 Q1232,60 1222,67" />
-          </g>
-          {dots.map((x, i) => <circle key={i} cx={x} cy={i % 2 === 0 ? 8 : 82} r={2.5} fill="#c9607a" opacity={0.2} />)}
-        </svg>
+    return (
+        <header className="bg-white border-b border-[var(--border)] sticky top-0 z-50 shadow-sm">
 
-        <div className="relative z-10">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <span className="h-px w-14 bg-[var(--accent)] opacity-35" />
-            <span className="text-[10px] tracking-[0.25em] uppercase text-[var(--muted)] font-semibold">Příběhy, které pomáhají</span>
-            <span className="h-px w-14 bg-[var(--accent)] opacity-35" />
-          </div>
-          <Link href="/" className="font-serif text-4xl md:text-5xl font-bold text-[var(--ink)] tracking-tight hover:text-[var(--accent)] transition-colors inline-block">
-            Rodičovský svět
-          </Link>
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <span className="h-px w-8 bg-[var(--accent)] opacity-30" />
-            <span className="text-[var(--accent)] opacity-50 text-xs">✦</span>
-            <span className="text-[var(--muted)] text-xs italic">Píšeme pro rodiče, od rodičů</span>
-            <span className="text-[var(--accent)] opacity-50 text-xs">✦</span>
-            <span className="h-px w-8 bg-[var(--accent)] opacity-30" />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Navigace ── */}
-      <nav className="max-w-6xl mx-auto px-4 border-t border-[var(--border)]">
-
-        {/* Desktop */}
-        <div className="hidden md:flex items-center justify-between py-1.5">
-          <ul className="flex items-center gap-1">
-
-            {/* Články dropdown */}
-            <li ref={dropdownRef} className="relative">
-              <button
-                onClick={() => setClankyOpen(!clankyOpen)}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-colors flex items-center gap-1 ${
-                  isArticlePath ? "bg-[var(--rose)] text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"
-                }`}
-              >
-                📰 Články
-                <svg className={`w-3 h-3 transition-transform ${clankyOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+            {/* ── Masthead ── */}
+            <div
+                className="relative overflow-hidden py-5 text-center"
+                style={{ background: "linear-gradient(135deg, #f2dde4 0%, #fdf8f5 40%, #f2dde4 100%)" }}
+            >
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1400 90" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <Flower x={65} y={45} r={10} opacity={0.14} />
+                    <Flower x={1335} y={45} r={10} opacity={0.14} />
+                    <Flower x={200} y={20} r={6} opacity={0.12} />
+                    <Flower x={1200} y={20} r={6} opacity={0.12} />
+                    <Flower x={350} y={70} r={5} opacity={0.10} />
+                    <Flower x={1050} y={70} r={5} opacity={0.10} />
+                    {smallFlowers.map((x, i) => <Flower key={i} x={x} y={i % 2 === 0 ? 15 : 72} r={4} opacity={0.13} />)}
+                    <g opacity="0.12" stroke="#c9607a" strokeWidth="1.5" fill="none" strokeLinecap="round">
+                        <path d="M110,75 Q130,55 155,68 Q175,80 195,62" />
+                        <path d="M128,78 Q133,63 143,70" />
+                        <path d="M163,74 Q168,60 178,67" />
+                    </g>
+                    <g opacity="0.12" stroke="#c9607a" strokeWidth="1.5" fill="none" strokeLinecap="round">
+                        <path d="M1290,75 Q1270,55 1245,68 Q1225,80 1205,62" />
+                        <path d="M1272,78 Q1267,63 1257,70" />
+                        <path d="M1237,74 Q1232,60 1222,67" />
+                    </g>
+                    {dots.map((x, i) => <circle key={i} cx={x} cy={i % 2 === 0 ? 8 : 82} r={2.5} fill="#c9607a" opacity={0.2} />)}
                 </svg>
-              </button>
 
-              {clankyOpen && (
-                <div className="absolute top-full left-0 mt-1 bg-white border border-[var(--border)] rounded-xl shadow-lg py-2 min-w-[180px] z-50">
-                  <Link
-                    href="/"
-                    onClick={() => setClankyOpen(false)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-[var(--rose)] hover:text-[var(--accent)] transition-colors ${pathname === "/" ? "text-[var(--accent)] font-semibold" : "text-[var(--ink)]"}`}
-                  >
-                    📋 Všechny články
-                  </Link>
-                  <div className="h-px bg-[var(--border)] my-1 mx-3" />
-                  {categories.map((cat) => (
-                    <Link
-                      key={cat.slug}
-                      href={`/kategorie/${cat.slug}`}
-                      onClick={() => setClankyOpen(false)}
-                      className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-[var(--rose)] hover:text-[var(--accent)] transition-colors ${pathname === `/kategorie/${cat.slug}` ? "text-[var(--accent)] font-semibold" : "text-[var(--ink)]"}`}
-                    >
-                      <span>{CATEGORY_ICONS[cat.slug] ?? "✨"}</span>{cat.label}
+                <div className="relative z-10">
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                        <span className="h-px w-14 bg-[var(--accent)] opacity-35" />
+                        <span className="text-[10px] tracking-[0.25em] uppercase text-[var(--muted)] font-semibold">Příběhy, které pomáhají</span>
+                        <span className="h-px w-14 bg-[var(--accent)] opacity-35" />
+                    </div>
+                    <Link href="/" className="font-serif text-4xl md:text-5xl font-bold text-[var(--ink)] tracking-tight hover:text-[var(--accent)] transition-colors inline-block">
+                        Rodičovský svět
                     </Link>
-                  ))}
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                        <span className="h-px w-8 bg-[var(--accent)] opacity-30" />
+                        <span className="text-[var(--accent)] opacity-50 text-xs">✦</span>
+                        <span className="text-[var(--muted)] text-xs italic">Píšeme pro rodiče, od rodičů</span>
+                        <span className="text-[var(--accent)] opacity-50 text-xs">✦</span>
+                        <span className="h-px w-8 bg-[var(--accent)] opacity-30" />
+                    </div>
                 </div>
-              )}
-            </li>
-
-            <li><Link href="/kviz" className={linkClass(pathname.startsWith("/kviz"))}>🎯 Kvízy</Link></li>
-            <li><Link href="/dotazniky" className={linkClass(pathname.startsWith("/dotazniky"))}>📋 Dotazníky</Link></li>
-            <li><Link href="/generatory" className={linkClass(pathname.startsWith("/generatory"))}>✨ Generátory</Link></li>
-            <li><Link href="/hry" className={linkClass(pathname.startsWith("/hry"))}>🫧 Hry</Link></li>
-          </ul>
-
-          <div className="flex items-center gap-3 pl-4 border-l border-[var(--border)]">
-            <Link href="/o-nas" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname === "/o-nas" ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
-              <span>👨‍👩‍👧</span> O nás
-            </Link>
-          </div>
-        </div>
-
-        {/* Mobile */}
-        <div className="md:hidden flex items-center justify-between py-2">
-          <span className="text-sm text-[var(--muted)] font-medium">Menu</span>
-          <button onClick={() => setMenuOpen(!menuOpen)} className="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--accent)]" aria-label="Menu">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {menuOpen
-                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
-            </svg>
-          </button>
-        </div>
-
-        {menuOpen && (
-          <div className="md:hidden pb-3 space-y-2">
-            <div className="flex flex-wrap gap-2">
-              <Link href="/" onClick={() => setMenuOpen(false)} className="px-3 py-1 bg-[var(--rose)] text-[var(--accent)] rounded-full text-sm font-semibold">📰 Všechny články</Link>
-              {categories.map((cat) => (
-                <Link key={cat.slug} href={`/kategorie/${cat.slug}`} onClick={() => setMenuOpen(false)}
-                  className="px-3 py-1 border border-[var(--border)] rounded-full text-sm text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors flex items-center gap-1">
-                  {CATEGORY_ICONS[cat.slug] ?? "✨"} {cat.label}
-                </Link>
-              ))}
             </div>
-            <div className="pt-2 border-t border-[var(--border)] flex gap-2 flex-wrap">
-              <Link href="/kviz" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">🎯 Kvízy</Link>
-              <Link href="/dotazniky" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">📋 Dotazníky</Link>
-              <Link href="/generatory" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">✨ Generátory</Link>
-              <Link href="/hry" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">🫧 Hry</Link>
-              <Link href="/o-nas" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">👨‍👩‍👧 O nás</Link>
-            </div>
-          </div>
-        )}
-      </nav>
-    </header>
-  );
+
+            {/* ── Navigace ── */}
+            <nav className="max-w-6xl mx-auto px-4 border-t border-[var(--border)]">
+
+                {/* Desktop */}
+                <div className="hidden md:flex items-center justify-between py-1.5">
+                    <ul className="flex items-center gap-1">
+
+                        {/* Články dropdown */}
+                        <li ref={dropdownRef} className="relative">
+                            <button
+                                onClick={() => setClankyOpen(!clankyOpen)}
+                                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-colors flex items-center gap-1 ${
+                                    isArticlePath ? "bg-[var(--rose)] text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"
+                                }`}
+                            >
+                                📰 Články
+                                <svg className={`w-3 h-3 transition-transform ${clankyOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            {clankyOpen && (
+                                <div className="absolute top-full left-0 mt-1 bg-white border border-[var(--border)] rounded-xl shadow-lg py-2 min-w-[180px] z-50">
+                                    <Link
+                                        href="/"
+                                        onClick={() => setClankyOpen(false)}
+                                        className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-[var(--rose)] hover:text-[var(--accent)] transition-colors ${pathname === "/" ? "text-[var(--accent)] font-semibold" : "text-[var(--ink)]"}`}
+                                    >
+                                        📋 Všechny články
+                                    </Link>
+                                    <div className="h-px bg-[var(--border)] my-1 mx-3" />
+                                    {categories.map((cat) => (
+                                        <Link
+                                            key={cat.slug}
+                                            href={`/kategorie/${cat.slug}`}
+                                            onClick={() => setClankyOpen(false)}
+                                            className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-[var(--rose)] hover:text-[var(--accent)] transition-colors ${pathname === `/kategorie/${cat.slug}` ? "text-[var(--accent)] font-semibold" : "text-[var(--ink)]"}`}
+                                        >
+                                            <span>{CATEGORY_ICONS[cat.slug] ?? "✨"}</span>{cat.label}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </li>
+
+                        <li><Link href="/kviz" className={linkClass(pathname.startsWith("/kviz"))}>🎯 Kvízy</Link></li>
+                        <li><Link href="/dotazniky" className={linkClass(pathname.startsWith("/dotazniky"))}>📋 Dotazníky</Link></li>
+                        <li><Link href="/generatory" className={linkClass(pathname.startsWith("/generatory"))}>✨ Generátory</Link></li>
+                        <li><Link href="/hry" className={linkClass(pathname.startsWith("/hry"))}>🫧 Hry</Link></li>
+                    </ul>
+
+                    <div className="flex items-center gap-3 pl-4 border-l border-[var(--border)]">
+                        <Link href="/o-nas" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname === "/o-nas" ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
+                            <span>👨‍👩‍👧</span> O nás
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Mobile */}
+                <div className="md:hidden flex items-center justify-between py-2">
+                    <span className="text-sm text-[var(--muted)] font-medium">Menu</span>
+                    <button onClick={() => setMenuOpen(!menuOpen)} className="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--accent)]" aria-label="Menu">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {menuOpen
+                                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
+                        </svg>
+                    </button>
+                </div>
+
+                {menuOpen && (
+                    <div className="md:hidden pb-3 space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                            <Link href="/" onClick={() => setMenuOpen(false)} className="px-3 py-1 bg-[var(--rose)] text-[var(--accent)] rounded-full text-sm font-semibold">📰 Všechny články</Link>
+                            {categories.map((cat) => (
+                                <Link key={cat.slug} href={`/kategorie/${cat.slug}`} onClick={() => setMenuOpen(false)}
+                                      className="px-3 py-1 border border-[var(--border)] rounded-full text-sm text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors flex items-center gap-1">
+                                    {CATEGORY_ICONS[cat.slug] ?? "✨"} {cat.label}
+                                </Link>
+                            ))}
+                        </div>
+                        <div className="pt-2 border-t border-[var(--border)] flex gap-2 flex-wrap">
+                            <Link href="/kviz" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">🎯 Kvízy</Link>
+                            <Link href="/dotazniky" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">📋 Dotazníky</Link>
+                            <Link href="/generatory" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">✨ Generátory</Link>
+                            <Link href="/hry" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">🫧 Hry</Link>
+                            <Link href="/o-nas" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">👨‍👩‍👧 O nás</Link>
+                        </div>
+                    </div>
+                )}
+            </nav>
+        </header>
+    );
 }
