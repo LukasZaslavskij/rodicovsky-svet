@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface Category {
   slug: string;
@@ -20,7 +20,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   vychova: "💛",
 };
 
-// Květ ze 5 okvětních lístků + střed
+// Květ pro SVG dekoraci
 function Flower({ x, y, r, opacity }: { x: number; y: number; r: number; opacity: number }) {
   const petals = [0, 72, 144, 216, 288].map((angle) => {
     const rad = (angle * Math.PI) / 180;
@@ -37,15 +37,29 @@ function Flower({ x, y, r, opacity }: { x: number; y: number; r: number; opacity
 export default function Navbar({ categories }: { categories: Category[] }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [clankyOpen, setClankyOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const smallFlowers = [150, 250, 380, 480, 620, 720, 860, 960, 1100, 1200];
+  const dots = [190, 290, 440, 540, 680, 780, 920, 1020, 1150];
+
+  // Zavři dropdown při kliknutí mimo
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setClankyOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const linkClass = (active: boolean) =>
     `px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
       active ? "bg-[var(--rose)] text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"
     }`;
 
-  // Malé kvítky rovnoměrně rozložené přes celou šířku
-  const smallFlowers = [150, 250, 380, 480, 620, 720, 860, 960, 1100, 1200];
-  const dots = [190, 290, 440, 540, 680, 780, 920, 1020, 1150];
+  const isArticlePath = pathname === "/" || pathname.startsWith("/kategorie") || pathname.startsWith("/clanky");
 
   return (
     <header className="bg-white border-b border-[var(--border)] sticky top-0 z-50 shadow-sm">
@@ -55,31 +69,14 @@ export default function Navbar({ categories }: { categories: Category[] }) {
         className="relative overflow-hidden py-5 text-center"
         style={{ background: "linear-gradient(135deg, #f2dde4 0%, #fdf8f5 40%, #f2dde4 100%)" }}
       >
-        {/* SVG vzor – viewBox 1400×90 pokrývá celou šířku */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="0 0 1400 90"
-          preserveAspectRatio="xMidYMid slice"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Velký květ vlevo */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1400 90" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           <Flower x={65} y={45} r={10} opacity={0.14} />
-
-          {/* Velký květ vpravo */}
           <Flower x={1335} y={45} r={10} opacity={0.14} />
-
-          {/* Středně velké květy */}
           <Flower x={200} y={20} r={6} opacity={0.12} />
           <Flower x={1200} y={20} r={6} opacity={0.12} />
           <Flower x={350} y={70} r={5} opacity={0.10} />
           <Flower x={1050} y={70} r={5} opacity={0.10} />
-
-          {/* Malé kvítky */}
-          {smallFlowers.map((x, i) => (
-            <Flower key={i} x={x} y={i % 2 === 0 ? 15 : 72} r={4} opacity={0.13} />
-          ))}
-
-          {/* Větvičky */}
+          {smallFlowers.map((x, i) => <Flower key={i} x={x} y={i % 2 === 0 ? 15 : 72} r={4} opacity={0.13} />)}
           <g opacity="0.12" stroke="#c9607a" strokeWidth="1.5" fill="none" strokeLinecap="round">
             <path d="M110,75 Q130,55 155,68 Q175,80 195,62" />
             <path d="M128,78 Q133,63 143,70" />
@@ -90,14 +87,9 @@ export default function Navbar({ categories }: { categories: Category[] }) {
             <path d="M1272,78 Q1267,63 1257,70" />
             <path d="M1237,74 Q1232,60 1222,67" />
           </g>
-
-          {/* Puntíky */}
-          {dots.map((x, i) => (
-            <circle key={i} cx={x} cy={i % 2 === 0 ? 8 : 82} r={2.5} fill="#c9607a" opacity={0.2} />
-          ))}
+          {dots.map((x, i) => <circle key={i} cx={x} cy={i % 2 === 0 ? 8 : 82} r={2.5} fill="#c9607a" opacity={0.2} />)}
         </svg>
 
-        {/* Text obsah */}
         <div className="relative z-10">
           <div className="flex items-center justify-center gap-3 mb-2">
             <span className="h-px w-14 bg-[var(--accent)] opacity-35" />
@@ -119,34 +111,63 @@ export default function Navbar({ categories }: { categories: Category[] }) {
 
       {/* ── Navigace ── */}
       <nav className="max-w-6xl mx-auto px-4 border-t border-[var(--border)]">
+
+        {/* Desktop */}
         <div className="hidden md:flex items-center justify-between py-1.5">
           <ul className="flex items-center gap-1">
-            <li><Link href="/" className={linkClass(pathname === "/")}>Vše</Link></li>
-            {categories.map((cat) => (
-              <li key={cat.slug}>
-                <Link href={`/kategorie/${cat.slug}`} className={`${linkClass(pathname === `/kategorie/${cat.slug}`)} flex items-center gap-1.5`}>
-                  <span>{CATEGORY_ICONS[cat.slug] ?? "✨"}</span>{cat.label}
-                </Link>
-              </li>
-            ))}
+
+            {/* Články dropdown */}
+            <li ref={dropdownRef} className="relative">
+              <button
+                onClick={() => setClankyOpen(!clankyOpen)}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-colors flex items-center gap-1 ${
+                  isArticlePath ? "bg-[var(--rose)] text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"
+                }`}
+              >
+                📰 Články
+                <svg className={`w-3 h-3 transition-transform ${clankyOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {clankyOpen && (
+                <div className="absolute top-full left-0 mt-1 bg-white border border-[var(--border)] rounded-xl shadow-lg py-2 min-w-[180px] z-50">
+                  <Link
+                    href="/"
+                    onClick={() => setClankyOpen(false)}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-[var(--rose)] hover:text-[var(--accent)] transition-colors ${pathname === "/" ? "text-[var(--accent)] font-semibold" : "text-[var(--ink)]"}`}
+                  >
+                    📋 Všechny články
+                  </Link>
+                  <div className="h-px bg-[var(--border)] my-1 mx-3" />
+                  {categories.map((cat) => (
+                    <Link
+                      key={cat.slug}
+                      href={`/kategorie/${cat.slug}`}
+                      onClick={() => setClankyOpen(false)}
+                      className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-[var(--rose)] hover:text-[var(--accent)] transition-colors ${pathname === `/kategorie/${cat.slug}` ? "text-[var(--accent)] font-semibold" : "text-[var(--ink)]"}`}
+                    >
+                      <span>{CATEGORY_ICONS[cat.slug] ?? "✨"}</span>{cat.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </li>
+
+            <li><Link href="/kviz" className={linkClass(pathname.startsWith("/kviz"))}>🎯 Kvízy</Link></li>
+            <li><Link href="/dotazniky" className={linkClass(pathname.startsWith("/dotazniky"))}>📋 Dotazníky</Link></li>
+            <li><Link href="/generatory" className={linkClass(pathname.startsWith("/generatory"))}>✨ Generátory</Link></li>
+            <li><Link href="/hry" className={linkClass(pathname.startsWith("/hry"))}>🫧 Hry</Link></li>
           </ul>
+
           <div className="flex items-center gap-3 pl-4 border-l border-[var(--border)]">
-            <Link href="/kviz" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname.startsWith("/kviz") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
-              <span>🎯</span> Kvízy
-            </Link>
-            <Link href="/dotazniky" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname.startsWith("/dotazniky") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
-              <span>📋</span> Dotazníky
-            </Link>
-            <Link href="/generatory" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname.startsWith("/generatory") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
-              <span>✨</span> Generátory
-            </Link>
-            <span className="text-[var(--border)]">|</span>
             <Link href="/o-nas" className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${pathname === "/o-nas" ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--accent)]"}`}>
               <span>👨‍👩‍👧</span> O nás
             </Link>
           </div>
         </div>
 
+        {/* Mobile */}
         <div className="md:hidden flex items-center justify-between py-2">
           <span className="text-sm text-[var(--muted)] font-medium">Menu</span>
           <button onClick={() => setMenuOpen(!menuOpen)} className="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--accent)]" aria-label="Menu">
@@ -161,7 +182,7 @@ export default function Navbar({ categories }: { categories: Category[] }) {
         {menuOpen && (
           <div className="md:hidden pb-3 space-y-2">
             <div className="flex flex-wrap gap-2">
-              <Link href="/" onClick={() => setMenuOpen(false)} className="px-3 py-1 bg-[var(--rose)] text-[var(--accent)] rounded-full text-sm font-semibold">Vše</Link>
+              <Link href="/" onClick={() => setMenuOpen(false)} className="px-3 py-1 bg-[var(--rose)] text-[var(--accent)] rounded-full text-sm font-semibold">📰 Všechny články</Link>
               {categories.map((cat) => (
                 <Link key={cat.slug} href={`/kategorie/${cat.slug}`} onClick={() => setMenuOpen(false)}
                   className="px-3 py-1 border border-[var(--border)] rounded-full text-sm text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors flex items-center gap-1">
@@ -170,18 +191,11 @@ export default function Navbar({ categories }: { categories: Category[] }) {
               ))}
             </div>
             <div className="pt-2 border-t border-[var(--border)] flex gap-2 flex-wrap">
-              <Link href="/kviz" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
-                🎯 Kvízy
-              </Link>
-              <Link href="/dotazniky" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
-                📋 Dotazníky
-              </Link>
-              <Link href="/generatory" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
-                ✨ Generátory
-              </Link>
-              <Link href="/o-nas" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
-                👨‍👩‍👧 O nás
-              </Link>
+              <Link href="/kviz" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">🎯 Kvízy</Link>
+              <Link href="/dotazniky" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">📋 Dotazníky</Link>
+              <Link href="/generatory" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">✨ Generátory</Link>
+              <Link href="/hry" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">🫧 Hry</Link>
+              <Link href="/o-nas" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors">👨‍👩‍👧 O nás</Link>
             </div>
           </div>
         )}
