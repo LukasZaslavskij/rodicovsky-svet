@@ -333,14 +333,14 @@ export default function SolitaireClient() {
                                 >
                                     {mobileFS ? "⛶" : "Full Screen"}
                                 </button>
-                                {!mobileFS && (
-                                    <button
-                                        onClick={() => setState(generateNewGame())}
-                                        className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm text-red-500 active:bg-slate-50"
-                                    >
-                                        Restart
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => setState(generateNewGame())}
+                                    className={`bg-white border-2 border-slate-300 rounded-xl font-bold text-red-500 active:bg-slate-50 ${
+                                        mobileFS ? "px-4 py-1.5 text-sm" : "px-3 py-1 text-[10px] sm:text-sm"
+                                    }`}
+                                >
+                                    {mobileFS ? "↺" : "Restart"}
+                                </button>
                             </div>
                         </div>
                     </div>
