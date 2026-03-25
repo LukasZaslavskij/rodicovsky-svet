@@ -146,13 +146,19 @@ export default function SolitaireClient() {
     sourceRef.current = source;
 
     const checkOrientation = useCallback(() => {
-        setIsLandscape(window.innerWidth > window.innerHeight);
-        // !! Bez auto-fullscreen – uživatel zapne sám tlačítkem na blocker obrazovce !!
+        // Použij screen.orientation pokud je dostupné, jinak window rozměry
+        const landscape = screen.orientation
+            ? screen.orientation.angle === 90 || screen.orientation.angle === 270
+            : window.innerWidth > window.innerHeight;
+        setIsLandscape(landscape);
     }, []);
 
     const toggleFullscreen = useCallback(() => {
         if (!document.fullscreenElement) {
-            containerRef.current?.requestFullscreen?.().catch(() => {});
+            const el = ('ontouchstart' in window)
+                ? document.documentElement
+                : containerRef.current;
+            el?.requestFullscreen?.().catch(() => {});
         } else {
             document.exitFullscreen?.();
         }
@@ -174,11 +180,15 @@ export default function SolitaireClient() {
         setIsMobile("ontouchstart" in window);
         const onChange = () => setIsFullscreen(!!document.fullscreenElement);
         window.addEventListener("resize", checkOrientation);
+        window.addEventListener("orientationchange", checkOrientation);
+        screen.orientation?.addEventListener("change", checkOrientation);
         document.addEventListener("fullscreenchange", onChange);
         checkOrientation();
         setState(generateNewGame());
         return () => {
             window.removeEventListener("resize", checkOrientation);
+            window.removeEventListener("orientationchange", checkOrientation);
+            screen.orientation?.removeEventListener("change", checkOrientation);
             document.removeEventListener("fullscreenchange", onChange);
         };
     }, [checkOrientation]);
@@ -246,7 +256,7 @@ export default function SolitaireClient() {
 
     if (!state) return null;
 
-    const showBlocker = isMobile && !isLandscape;
+    const showBlocker = isMobile && (!isLandscape || !isFullscreen);
     const mobileFS = isMobile && isFullscreen;
     const cardH = cardHeight(isFullscreen, mobileFS);
     const cardW = cardMinWidth(isFullscreen, mobileFS);
@@ -259,8 +269,8 @@ export default function SolitaireClient() {
                 <div className="text-7xl mb-6" style={{ animation: "spin-y 1.5s ease-in-out infinite alternate" }}>🔄</div>
                 <style>{`@keyframes spin-y { from { transform: rotate(-30deg); } to { transform: rotate(30deg); } }`}</style>
                 <h1 className="text-white text-3xl font-black mb-3">PŘEVRAŤTE OBRAZOVKU</h1>
-                <p className="text-slate-400 mb-2 max-w-xs text-sm">Otočte telefon na šířku.</p>
-                <p className="text-slate-500 mb-8 max-w-xs text-xs">Pak klikněte na tlačítko níže pro full screen.</p>
+                <p className="text-slate-400 mb-2 max-w-xs text-sm">1. Klikněte na Full Screen níže.</p>
+                <p className="text-slate-500 mb-8 max-w-xs text-xs">2. Pak otočte telefon na šířku.</p>
                 <div className="flex flex-col gap-4 w-full max-w-xs">
                     <button
                         onClick={toggleFullscreen}
