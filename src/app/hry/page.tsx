@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Hry pro rodiče a děti",
-  description: "Zábavné hry pro celou rodinu. Zahraj si Bubble Shooter a další hry zdarma.",
+  description: "Zábavné hry pro chvíle odpočinku. Bubble Shooter, Solitaire a další hry zdarma.",
   alternates: { canonical: "https://rodicovskysvet.cz/hry" },
 };
 
@@ -15,6 +15,14 @@ const HRY = [
     emoji: "🫧",
     color: "from-purple-50 to-indigo-100",
     tag: "Puzzle",
+  },
+  {
+    slug: "solitaire",
+    title: "Solitaire",
+    description: "Klasická karetní hra Klondike. Přesuň všechny karty na hromádky od esa po krále.",
+    emoji: "🃏",
+    color: "from-emerald-50 to-teal-100",
+    tag: "Karty",
   },
 ];
 
