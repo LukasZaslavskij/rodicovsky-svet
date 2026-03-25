@@ -119,10 +119,16 @@ export default function SolitaireClient() {
     const [source, setSource] = useState<{ type: string; colIdx?: number; cardIdx?: number; cards: Card[] } | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLandscape, setIsLandscape] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const checkOrientation = useCallback(() => {
-        setIsLandscape(window.innerWidth > window.innerHeight);
+        const landscape = window.innerWidth > window.innerHeight;
+        setIsLandscape(landscape);
+        // Pokud je mobil a otočí se do landscape, zkus automaticky zapnout fullscreen
+        if (landscape && ('ontouchstart' in window) && !document.fullscreenElement) {
+            containerRef.current?.requestFullscreen?.().catch(() => {});
+        }
     }, []);
 
     const toggleFullscreen = useCallback(() => {
@@ -134,6 +140,7 @@ export default function SolitaireClient() {
     }, []);
 
     useEffect(() => {
+        setIsMobile('ontouchstart' in window);
         const onChange = () => setIsFullscreen(!!document.fullscreenElement);
         window.addEventListener("resize", checkOrientation);
         document.addEventListener("fullscreenchange", onChange);
@@ -204,8 +211,7 @@ export default function SolitaireClient() {
 
     if (!state) return null;
 
-    const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window);
-    const showBlocker = isTouchDevice && !isLandscape;
+    const showBlocker = isMobile && !isLandscape;
 
     if (showBlocker) {
         return (
@@ -221,21 +227,64 @@ export default function SolitaireClient() {
         );
     }
 
-    return (
-        <div ref={containerRef} className={`flex flex-col transition-all duration-500 ${isFullscreen ? "h-screen w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center" : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"}`}>
-            <div className={`flex flex-col h-full ${isFullscreen ? "w-full sm:w-fit" : "w-full"}`}>
+    // Zkrácené proměnné pro čitelnost
+    const mobileFS = isMobile && isFullscreen;
 
-                {/* Header */}
-                <div className={`flex items-center justify-between border-b px-1 ${isFullscreen ? "border-slate-400 mb-4 py-1" : "border-slate-300 mb-8 pb-4"}`}>
-                    <span className={`font-black tracking-tighter text-slate-800 ${isFullscreen ? "hidden sm:block text-2xl" : "text-2xl"}`}>SOLITAIRE</span>
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-row items-center gap-2">
-                            <span className="text-[10px] uppercase font-bold text-slate-500">Tahy</span>
-                            <span className="text-xl sm:text-2xl font-black text-slate-800 leading-none">{state.moves}</span>
+    return (
+        // PC: beze změny. Mobil fullscreen: w-screen bez padding a centrování
+        <div
+            ref={containerRef}
+            className={`flex flex-col transition-all duration-500 ${
+                isFullscreen
+                    ? mobileFS
+                        ? "h-screen w-screen fixed inset-0 p-1 bg-slate-300 overflow-hidden"
+                        : "h-screen w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center"
+                    : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"
+            }`}
+        >
+            {/* Na mobilu fullscreen: w-full celou šířku. PC fullscreen: původní sm:w-fit */}
+            <div className={`flex flex-col h-full ${
+                isFullscreen
+                    ? mobileFS ? "w-full" : "w-full sm:w-fit"
+                    : "w-full"
+            }`}>
+
+                {/* Header – na mobilu fullscreen je menší a kompaktnější */}
+                <div className={`flex items-center justify-between border-b px-1 ${
+                    isFullscreen
+                        ? mobileFS
+                            ? "border-slate-400 mb-2 py-0.5"
+                            : "border-slate-400 mb-4 py-1"
+                        : "border-slate-300 mb-8 pb-4"
+                }`}>
+                    <span className={`font-black tracking-tighter text-slate-800 ${
+                        isFullscreen ? "hidden sm:block text-2xl" : "text-2xl"
+                    }`}>SOLITAIRE</span>
+
+                    <div className={`flex items-center ${mobileFS ? "gap-2" : "gap-4"}`}>
+                        <div className="flex flex-row items-center gap-1">
+                            <span className={`uppercase font-bold text-slate-500 ${mobileFS ? "text-[8px]" : "text-[10px]"}`}>Tahy</span>
+                            <span className={`font-black text-slate-800 leading-none ${mobileFS ? "text-base" : "text-xl sm:text-2xl"}`}>
+                                {state.moves}
+                            </span>
                         </div>
-                        <div className="flex gap-2">
-                            <button onClick={toggleFullscreen} className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm shadow-sm active:bg-slate-50">Full Screen</button>
-                            <button onClick={() => window.location.reload()} className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm text-red-500 active:bg-slate-50">Restart</button>
+                        <div className={`flex ${mobileFS ? "gap-1" : "gap-2"}`}>
+                            <button
+                                onClick={toggleFullscreen}
+                                className={`bg-white border-2 border-slate-300 rounded-xl font-bold shadow-sm active:bg-slate-50 ${
+                                    mobileFS ? "px-2 py-0.5 text-[9px]" : "px-3 py-1 text-[10px] sm:text-sm"
+                                }`}
+                            >
+                                {mobileFS ? "⛶" : "Full Screen"}
+                            </button>
+                            <button
+                                onClick={() => window.location.reload()}
+                                className={`bg-white border-2 border-slate-300 rounded-xl font-bold text-red-500 active:bg-slate-50 ${
+                                    mobileFS ? "px-2 py-0.5 text-[9px]" : "px-3 py-1 text-[10px] sm:text-sm"
+                                }`}
+                            >
+                                {mobileFS ? "↺" : "Restart"}
+                            </button>
                         </div>
                     </div>
                 </div>
