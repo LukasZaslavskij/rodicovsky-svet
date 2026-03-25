@@ -349,8 +349,9 @@ export default function SolitaireClient() {
                     <div className={`grid grid-cols-7 mb-4 ${isFullscreen ? "gap-2" : "gap-4"}`}>
                         <div className="flex gap-1 sm:gap-2 col-span-2">
                             <div className="w-fit"
-                                onClick={() => handleActionStart("stock", [])}
-                                onTouchStart={(e) => { e.preventDefault(); handleActionStart("stock", []); }}>
+                                onClick={(e) => { if (!('ontouchstart' in window)) handleActionStart("stock", []); }}
+                                onTouchEnd={(e) => { e.stopPropagation(); handleActionStart("stock", []); }}
+                                style={{ touchAction: "none" }}>
                                 {state.stock.length > 0
                                     ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={isFullscreen} mobileFS={mobileFS} />
                                     : <div className="rounded-xl border-4 border-dashed border-slate-400 flex items-center justify-center text-4xl text-slate-400"
