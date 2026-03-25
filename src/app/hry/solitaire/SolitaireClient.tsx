@@ -155,10 +155,7 @@ export default function SolitaireClient() {
 
     const toggleFullscreen = useCallback(() => {
         if (!document.fullscreenElement) {
-            const el = ('ontouchstart' in window)
-                ? document.documentElement
-                : containerRef.current;
-            el?.requestFullscreen?.().catch(() => {});
+            containerRef.current?.requestFullscreen?.().catch(() => {});
         } else {
             document.exitFullscreen?.();
         }
@@ -257,192 +254,198 @@ export default function SolitaireClient() {
     if (!state) return null;
 
     const showBlocker = isMobile && (!isLandscape || !isFullscreen);
-    const mobileFS = isMobile && isFullscreen;
+    const mobileFS = isMobile && isFullscreen && isLandscape;
     const cardH = cardHeight(isFullscreen, mobileFS);
     const cardW = cardMinWidth(isFullscreen, mobileFS);
     const overlapFaceUp   = mobileFS ? "-16vh"   : isFullscreen ? "-12vh"   : "-105px";
     const overlapFaceDown = mobileFS ? "-19.5vh" : isFullscreen ? "-14.5vh" : "-120px";
 
-    if (showBlocker) {
-        return (
-            <div ref={containerRef} className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 text-center z-[999]">
-                <div className="text-7xl mb-6" style={{ animation: "spin-y 1.5s ease-in-out infinite alternate" }}>🔄</div>
-                <style>{`@keyframes spin-y { from { transform: rotate(-30deg); } to { transform: rotate(30deg); } }`}</style>
-                <h1 className="text-white text-3xl font-black mb-3">PŘEVRAŤTE OBRAZOVKU</h1>
-                <p className="text-slate-400 mb-2 max-w-xs text-sm">1. Klikněte na Full Screen níže.</p>
-                <p className="text-slate-500 mb-8 max-w-xs text-xs">2. Pak otočte telefon na šířku.</p>
-                <div className="flex flex-col gap-4 w-full max-w-xs">
-                    <button
-                        onClick={toggleFullscreen}
-                        className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xl active:scale-95 transition-transform shadow-lg shadow-blue-900"
-                    >
-                        ⛶ ZAPNOUT FULL SCREEN
-                    </button>
-                    <button
-                        onClick={() => window.history.back()}
-                        className="bg-slate-800 text-slate-300 px-8 py-3 rounded-2xl font-bold text-base active:scale-95 transition-transform"
-                    >
-                        ← ZPĚT
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
+        // Jeden stálý wrapper s ref – nikdy se neodmountuje, takže fullscreen zůstane
         <div
             ref={containerRef}
-            className={`flex flex-col transition-all duration-500 ${
-                isFullscreen
-                    ? mobileFS
-                        ? "h-screen w-screen fixed inset-0 p-1 bg-slate-300 overflow-hidden"
-                        : "h-screen w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center"
-                    : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"
-            }`}
-            onTouchEnd={handleTouchEnd}
+            className="contents"
         >
-            <div className={`flex flex-col h-full ${
-                isFullscreen ? (mobileFS ? "w-full" : "w-full sm:w-fit") : "w-full"
-            }`}>
-
-                {/* ── Header ── */}
-                <div className={`flex items-center justify-between border-b px-1 ${
-                    isFullscreen
-                        ? mobileFS ? "border-slate-400 mb-2 py-0.5" : "border-slate-400 mb-4 py-1"
-                        : "border-slate-300 mb-8 pb-4"
-                }`}>
-                    <span className={`font-black tracking-tighter text-slate-800 ${
-                        isFullscreen ? "hidden sm:block text-2xl" : "text-2xl"
-                    }`}>SOLITAIRE</span>
-
-                    <div className={`flex items-center ${mobileFS ? "gap-2" : "gap-4"}`}>
-                        <div className="flex flex-row items-center gap-1">
-                            <span className={`uppercase font-bold text-slate-500 ${mobileFS ? "text-[8px]" : "text-[10px]"}`}>Tahy</span>
-                            <span className={`font-black text-slate-800 leading-none ${mobileFS ? "text-base" : "text-xl sm:text-2xl"}`}>
-                                {state.moves}
-                            </span>
-                        </div>
-                        <div className={`flex ${mobileFS ? "gap-1" : "gap-2"}`}>
-                            <button
-                                onClick={toggleFullscreen}
-                                className={`bg-white border-2 border-slate-300 rounded-xl font-bold shadow-sm active:bg-slate-50 ${
-                                    mobileFS ? "px-2 py-0.5 text-[9px]" : "px-3 py-1 text-[10px] sm:text-sm"
-                                }`}
-                            >
-                                {mobileFS ? "⛶" : "Full Screen"}
-                            </button>
-                            <button
-                                onClick={() => window.location.reload()}
-                                className={`bg-white border-2 border-slate-300 rounded-xl font-bold text-red-500 active:bg-slate-50 ${
-                                    mobileFS ? "px-2 py-0.5 text-[9px]" : "px-3 py-1 text-[10px] sm:text-sm"
-                                }`}
-                            >
-                                {mobileFS ? "↺" : "Restart"}
-                            </button>
-                        </div>
+            {/* ── Blocker – překryje vše když podmínky nejsou splněny ── */}
+            {showBlocker && (
+                <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 text-center z-[999]">
+                    <div className="text-7xl mb-6" style={{ animation: "spin-y 1.5s ease-in-out infinite alternate" }}>🔄</div>
+                    <style>{`@keyframes spin-y { from { transform: rotate(-30deg); } to { transform: rotate(30deg); } }`}</style>
+                    <h1 className="text-white text-3xl font-black mb-3">PŘEVRAŤTE OBRAZOVKU</h1>
+                    <p className="text-slate-400 mb-2 max-w-xs text-sm">1. Klikněte na Full Screen níže.</p>
+                    <p className="text-slate-500 mb-8 max-w-xs text-xs">2. Pak otočte telefon na šířku.</p>
+                    <div className="flex flex-col gap-4 w-full max-w-xs">
+                        <button
+                            onClick={toggleFullscreen}
+                            className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xl active:scale-95 transition-transform shadow-lg shadow-blue-900"
+                        >
+                            ⛶ ZAPNOUT FULL SCREEN
+                        </button>
+                        <button
+                            onClick={() => window.history.back()}
+                            className="bg-slate-800 text-slate-300 px-8 py-3 rounded-2xl font-bold text-base active:scale-95 transition-transform"
+                        >
+                            ← ZPĚT
+                        </button>
                     </div>
                 </div>
+            )}
 
-                {/* ── Horní řada ── */}
-                <div className={`grid grid-cols-7 mb-4 ${isFullscreen ? "gap-2" : "gap-4"}`}>
-                    <div className="flex gap-1 sm:gap-2 col-span-2">
-                        <div className="w-fit"
-                            onClick={() => handleActionStart("stock", [])}
-                            onTouchStart={() => handleActionStart("stock", [])}>
-                            {state.stock.length > 0
-                                ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={isFullscreen} mobileFS={mobileFS} />
-                                : <div className="rounded-xl border-4 border-dashed border-slate-400 flex items-center justify-center text-4xl text-slate-400"
-                                    style={{ aspectRatio: "2/3", height: cardH }}>↺</div>
-                            }
-                        </div>
-                        <div className="w-fit">
-                            {state.waste.length > 0 && (
-                                <CardView
-                                    card={state.waste[state.waste.length - 1]}
-                                    isSelected={source?.type === "waste"}
-                                    onClick={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
-                                    onDragStart={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
-                                    onTouchStart={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
-                                    isFullscreen={isFullscreen} mobileFS={mobileFS}
-                                />
-                            )}
+            {/* ── Hra – vždy mountovaná, schovaná za blockerem pokud je blocker aktivní ── */}
+            <div
+                className={`flex flex-col transition-all duration-500 ${
+                    showBlocker ? "invisible" :
+                    isFullscreen
+                        ? mobileFS
+                            ? "h-screen w-screen fixed inset-0 p-1 bg-slate-300 overflow-hidden"
+                            : "h-screen w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center"
+                        : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"
+                }`}
+                onTouchEnd={handleTouchEnd}
+            >
+                <div className={`flex flex-col h-full ${
+                    isFullscreen ? (mobileFS ? "w-full" : "w-full sm:w-fit") : "w-full"
+                }`}>
+
+                    {/* ── Header ── */}
+                    <div className={`flex items-center justify-between border-b px-1 ${
+                        isFullscreen
+                            ? mobileFS ? "border-slate-400 mb-2 py-0.5" : "border-slate-400 mb-4 py-1"
+                            : "border-slate-300 mb-8 pb-4"
+                    }`}>
+                        <span className={`font-black tracking-tighter text-slate-800 ${
+                            isFullscreen ? "hidden sm:block text-2xl" : "text-2xl"
+                        }`}>SOLITAIRE</span>
+
+                        <div className={`flex items-center ${mobileFS ? "gap-2" : "gap-4"}`}>
+                            <div className="flex flex-row items-center gap-1">
+                                <span className={`uppercase font-bold text-slate-500 ${mobileFS ? "text-[8px]" : "text-[10px]"}`}>Tahy</span>
+                                <span className={`font-black text-slate-800 leading-none ${mobileFS ? "text-base" : "text-xl sm:text-2xl"}`}>
+                                    {state.moves}
+                                </span>
+                            </div>
+                            <div className={`flex ${mobileFS ? "gap-1" : "gap-2"}`}>
+                                <button
+                                    onClick={toggleFullscreen}
+                                    className={`bg-white border-2 border-slate-300 rounded-xl font-bold shadow-sm active:bg-slate-50 ${
+                                        mobileFS ? "px-2 py-0.5 text-[9px]" : "px-3 py-1 text-[10px] sm:text-sm"
+                                    }`}
+                                >
+                                    {mobileFS ? "⛶" : "Full Screen"}
+                                </button>
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className={`bg-white border-2 border-slate-300 rounded-xl font-bold text-red-500 active:bg-slate-50 ${
+                                        mobileFS ? "px-2 py-0.5 text-[9px]" : "px-3 py-1 text-[10px] sm:text-sm"
+                                    }`}
+                                >
+                                    {mobileFS ? "↺" : "Restart"}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div className="col-span-1" />
-                    <div className="col-span-4 grid grid-cols-4 gap-1 sm:gap-2">
-                        {state.foundations.map((f, fi) => (
-                            <div key={fi}
-                                data-target data-target-type="foundation" data-target-idx={fi}
-                                onClick={() => source && executeMove("foundation", fi)}
-                                onDragOver={e => e.preventDefault()}
-                                onDrop={() => executeMove("foundation", fi)}>
-                                {f.length > 0
-                                    ? <CardView card={f[f.length - 1]} isFullscreen={isFullscreen} mobileFS={mobileFS} />
-                                    : <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-xl sm:text-3xl font-black shadow-inner"
-                                        style={{ aspectRatio: "2/3", height: cardH }}>{SUITS[fi]}</div>
+
+                    {/* ── Horní řada ── */}
+                    <div className={`grid grid-cols-7 mb-4 ${isFullscreen ? "gap-2" : "gap-4"}`}>
+                        <div className="flex gap-1 sm:gap-2 col-span-2">
+                            <div className="w-fit"
+                                onClick={() => handleActionStart("stock", [])}
+                                onTouchStart={() => handleActionStart("stock", [])}>
+                                {state.stock.length > 0
+                                    ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={isFullscreen} mobileFS={mobileFS} />
+                                    : <div className="rounded-xl border-4 border-dashed border-slate-400 flex items-center justify-center text-4xl text-slate-400"
+                                        style={{ aspectRatio: "2/3", height: cardH }}>↺</div>
                                 }
+                            </div>
+                            <div className="w-fit">
+                                {state.waste.length > 0 && (
+                                    <CardView
+                                        card={state.waste[state.waste.length - 1]}
+                                        isSelected={source?.type === "waste"}
+                                        onClick={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
+                                        onDragStart={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
+                                        onTouchStart={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
+                                        isFullscreen={isFullscreen} mobileFS={mobileFS}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                        <div className="col-span-1" />
+                        <div className="col-span-4 grid grid-cols-4 gap-1 sm:gap-2">
+                            {state.foundations.map((f, fi) => (
+                                <div key={fi}
+                                    data-target data-target-type="foundation" data-target-idx={fi}
+                                    onClick={() => source && executeMove("foundation", fi)}
+                                    onDragOver={e => e.preventDefault()}
+                                    onDrop={() => executeMove("foundation", fi)}>
+                                    {f.length > 0
+                                        ? <CardView card={f[f.length - 1]} isFullscreen={isFullscreen} mobileFS={mobileFS} />
+                                        : <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-xl sm:text-3xl font-black shadow-inner"
+                                            style={{ aspectRatio: "2/3", height: cardH }}>{SUITS[fi]}</div>
+                                    }
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* ── Tableau ── */}
+                    <div className={`grid grid-cols-7 flex-grow items-start ${isFullscreen ? "gap-2" : "gap-4"}`}>
+                        {state.tableau.map((col, ci) => (
+                            <div key={ci}
+                                className="flex flex-col items-center relative h-full"
+                                data-target data-target-type="tableau" data-target-idx={ci}
+                                onClick={() => source && source.colIdx !== ci && executeMove("tableau", ci)}
+                                onDragOver={e => e.preventDefault()}
+                                onDrop={() => executeMove("tableau", ci)}>
+                                {col.length === 0 && (
+                                    <div className="rounded-xl border-2 border-dashed border-slate-400 opacity-20"
+                                        style={{ aspectRatio: "2/3", width: cardW }} />
+                                )}
+                                {col.map((card, cardIdx) => {
+                                    const overlap = cardIdx === 0 ? "0"
+                                        : (col[cardIdx - 1].faceUp ? overlapFaceUp : overlapFaceDown);
+                                    return (
+                                        <div key={card.id} style={{ marginTop: overlap, zIndex: cardIdx, position: "relative" }}>
+                                            <CardView
+                                                card={card}
+                                                isSelected={draggedIds.includes(card.id)}
+                                                isDragging={draggedIds.includes(card.id) && !!touchDragPos}
+                                                onDragStart={() => handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx)}
+                                                onTouchStart={() => handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx)}
+                                                onClick={(e) => {
+                                                    // @ts-ignore
+                                                    e?.stopPropagation();
+                                                    handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx);
+                                                }}
+                                                isFullscreen={isFullscreen} mobileFS={mobileFS}
+                                            />
+                                        </div>
+                                    );
+                                })}
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* ── Tableau ── */}
-                <div className={`grid grid-cols-7 flex-grow items-start ${isFullscreen ? "gap-2" : "gap-4"}`}>
-                    {state.tableau.map((col, ci) => (
-                        <div key={ci}
-                            className="flex flex-col items-center relative h-full"
-                            data-target data-target-type="tableau" data-target-idx={ci}
-                            onClick={() => source && source.colIdx !== ci && executeMove("tableau", ci)}
-                            onDragOver={e => e.preventDefault()}
-                            onDrop={() => executeMove("tableau", ci)}>
-                            {col.length === 0 && (
-                                <div className="rounded-xl border-2 border-dashed border-slate-400 opacity-20"
-                                    style={{ aspectRatio: "2/3", width: cardW }} />
-                            )}
-                            {col.map((card, cardIdx) => {
-                                const overlap = cardIdx === 0 ? "0"
-                                    : (col[cardIdx - 1].faceUp ? overlapFaceUp : overlapFaceDown);
-                                return (
-                                    <div key={card.id} style={{ marginTop: overlap, zIndex: cardIdx, position: "relative" }}>
-                                        <CardView
-                                            card={card}
-                                            isSelected={draggedIds.includes(card.id)}
-                                            isDragging={draggedIds.includes(card.id) && !!touchDragPos}
-                                            onDragStart={() => handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx)}
-                                            onTouchStart={() => handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx)}
-                                            onClick={(e) => {
-                                                // @ts-ignore
-                                                e?.stopPropagation();
-                                                handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx);
-                                            }}
-                                            isFullscreen={isFullscreen} mobileFS={mobileFS}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ))}
-                </div>
+                {/* ── Plovoucí karta sledující prst při touch dragu ── */}
+                {source && touchDragPos && (
+                    <div style={{
+                        position: "fixed",
+                        left: `calc(${touchDragPos.x}px - ${cardW} / 2)`,
+                        top: `calc(${touchDragPos.y}px - ${cardH} * 0.65)`,
+                        zIndex: 9999,
+                        pointerEvents: "none",
+                        opacity: 0.92,
+                        filter: "drop-shadow(0 8px 20px rgba(0,0,0,0.5))",
+                    }}>
+                        {source.cards.map((card, i) => (
+                            <div key={card.id} style={{ marginTop: i === 0 ? 0 : overlapFaceUp, position: "relative", zIndex: i }}>
+                                <CardView card={card} isFullscreen={isFullscreen} mobileFS={mobileFS} />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
-
-            {/* ── Plovoucí karta sledující prst při touch dragu ── */}
-            {source && touchDragPos && (
-                <div style={{
-                    position: "fixed",
-                    left: `calc(${touchDragPos.x}px - ${cardW} / 2)`,
-                    top: `calc(${touchDragPos.y}px - ${cardH} * 0.65)`,
-                    zIndex: 9999,
-                    pointerEvents: "none",
-                    opacity: 0.92,
-                    filter: "drop-shadow(0 8px 20px rgba(0,0,0,0.5))",
-                }}>
-                    {source.cards.map((card, i) => (
-                        <div key={card.id} style={{ marginTop: i === 0 ? 0 : overlapFaceUp, position: "relative", zIndex: i }}>
-                            <CardView card={card} isFullscreen={isFullscreen} mobileFS={mobileFS} />
-                        </div>
-                    ))}
-                </div>
-            )}
         </div>
     );
 }
