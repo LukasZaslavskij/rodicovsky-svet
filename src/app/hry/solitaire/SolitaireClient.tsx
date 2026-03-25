@@ -65,7 +65,7 @@ function canPlaceOnTableau(card: Card, column: Card[]): boolean {
     return isRed(card.suit) !== isRed(top.suit) && card.value === top.value - 1;
 }
 
-// ── Komponenta karty s podporou dotyku ──────────────────────
+// ── Komponenta karty ───────────────────────────────────────
 interface CardViewProps {
     card: Card;
     isDragging?: boolean;
@@ -124,13 +124,20 @@ export default function SolitaireClient() {
     const [draggedIds, setDraggedIds] = useState<string[]>([]);
     const [source, setSource] = useState<{ type: string; colIdx?: number; cardIdx?: number; cards: Card[] } | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [touchPos, setTouchPos] = useState({ x: 0, y: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
 
     const toggleFullscreen = useCallback(() => {
-        if (!document.fullscreenElement) containerRef.current?.requestFullscreen?.().catch(() => {});
-        else document.exitFullscreen?.();
+        if (!document.fullscreenElement) {
+            containerRef.current?.requestFullscreen?.().catch(() => {});
+        } else {
+            document.exitFullscreen?.();
+        }
     }, []);
+
+    const handleBack = () => {
+        if (window.history.length > 1) window.history.back();
+        else window.location.href = "/";
+    };
 
     useEffect(() => {
         const onChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -166,14 +173,9 @@ export default function SolitaireClient() {
         setSource(null); setDraggedIds([]);
     };
 
-    // ── Touch Handlers (Mobilní Drag & Drop) ────────────────
     const handleTouchStart = (type: string, cards: Card[], colIdx?: number, cardIdx?: number) => {
         if (!cards[0]?.faceUp && type !== "stock") return;
-        if (type === "stock") {
-            // Speciální pro balíček - líznout
-            handleStockClick();
-            return;
-        }
+        if (type === "stock") { handleStockClick(); return; }
         setSource({ type, colIdx, cardIdx, cards });
         setDraggedIds(cards.map(c => c.id));
     };
@@ -183,7 +185,6 @@ export default function SolitaireClient() {
         const touch = e.changedTouches[0];
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
         const target = element?.closest('[data-target]');
-
         if (target) {
             const type = target.getAttribute('data-target-type') as "tableau" | "foundation";
             const idx = parseInt(target.getAttribute('data-target-idx') || "0");
@@ -206,18 +207,29 @@ export default function SolitaireClient() {
     if (!state) return null;
 
     // ── Mobilní Blocker ─────────────────────────────────────
-    // Pozn: Používáme jednoduchou detekci přes touch podporu
     const isMobileDevice = typeof window !== 'undefined' && ('ontouchstart' in window);
 
     if (isMobileDevice && !isFullscreen) {
         return (
             <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 text-center z-[999]">
                 <div className="text-6xl mb-6">📱🔄</div>
-                <h1 className="text-white text-2xl font-bold mb-4">PŘEPNĚTE NA FULL SCREEN</h1>
-                <p className="text-slate-400 mb-8">Pro hraní na mobilu musíte otočit telefon na šířku a aktivovat režim celé obrazovky.</p>
-                <button onClick={toggleFullscreen} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-2xl animate-bounce">
-                    ZAPNOUT FULL SCREEN
-                </button>
+                <h1 className="text-white text-2xl font-bold mb-4 uppercase tracking-tight">Hrejte na šířku</h1>
+                <p className="text-slate-400 mb-8 max-w-xs">Pro nejlepší zážitek musíte otočit telefon na šířku a zapnout celou obrazovku.</p>
+
+                <div className="flex flex-col gap-4 w-full max-w-xs">
+                    <button
+                        onClick={toggleFullscreen}
+                        className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-transform"
+                    >
+                        ZAPNOUT FULL SCREEN
+                    </button>
+                    <button
+                        onClick={handleBack}
+                        className="bg-slate-800 text-slate-300 px-8 py-3 rounded-2xl font-bold text-lg border border-slate-700 active:scale-95 transition-transform"
+                    >
+                        ← Zpět
+                    </button>
+                </div>
             </div>
         );
     }
@@ -228,7 +240,6 @@ export default function SolitaireClient() {
         <div ref={containerRef} className={`flex flex-col transition-all duration-500 ${isFullscreen ? "h-screen w-screen fixed inset-0 p-2 sm:p-8 bg-slate-300 overflow-hidden items-center justify-center" : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"}`}>
             <div className={`flex flex-col h-full ${isFullscreen ? "w-full sm:w-fit" : "w-full"}`}>
 
-                {/* Header */}
                 <div className={`flex items-center justify-between border-b px-1 ${isFullscreen ? "border-slate-400 mb-4 py-1" : "border-slate-300 mb-8 pb-4"}`}>
                     <span className={`font-black tracking-tighter text-slate-800 ${isFullscreen ? "hidden sm:block text-2xl" : "text-2xl"}`}>SOLITAIRE</span>
                     <div className={`flex items-center gap-4 sm:gap-6 ${isFullscreen ? "w-full sm:w-auto justify-between" : ""}`}>
@@ -237,8 +248,8 @@ export default function SolitaireClient() {
                             <span className="text-xl sm:text-2xl font-black text-slate-800 leading-none">{state.moves}</span>
                         </div>
                         <div className="flex gap-2">
-                            <button onClick={toggleFullscreen} className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm shadow-sm">Full Screen</button>
-                            <button onClick={() => window.location.reload()} className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm text-red-500">Restart</button>
+                            <button onClick={toggleFullscreen} className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm shadow-sm active:bg-slate-50">Full Screen</button>
+                            <button onClick={() => window.location.reload()} className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm text-red-500 active:bg-slate-50">Restart</button>
                         </div>
                     </div>
                 </div>
@@ -266,7 +277,7 @@ export default function SolitaireClient() {
                                  data-target data-target-type="foundation" data-target-idx={fi}
                                  onDragOver={e => e.preventDefault()} onDrop={() => executeMove("foundation", fi)}>
                                 {f.length > 0 ? <CardView card={f[f.length-1]} isFullscreen={isFullscreen} /> : (
-                                    <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-xl sm:text-3xl font-black" style={{aspectRatio: "2/3", height: isFullscreen ? "16.5vh" : "150px"}}>{SUITS[fi]}</div>
+                                    <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-xl sm:text-3xl font-black shadow-inner" style={{aspectRatio: "2/3", height: isFullscreen ? "16.5vh" : "150px"}}>{SUITS[fi]}</div>
                                 )}
                             </div>
                         ))}
