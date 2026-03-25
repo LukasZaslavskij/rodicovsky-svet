@@ -324,23 +324,23 @@ export default function SolitaireClient() {
                                     {state.moves}
                                 </span>
                             </div>
-                            <div className={`flex ${mobileFS ? "gap-1" : "gap-2"}`}>
+                            <div className={`flex ${mobileFS ? "gap-2" : "gap-2"}`}>
                                 <button
                                     onClick={toggleFullscreen}
                                     className={`bg-white border-2 border-slate-300 rounded-xl font-bold shadow-sm active:bg-slate-50 ${
-                                        mobileFS ? "px-2 py-0.5 text-[9px]" : "px-3 py-1 text-[10px] sm:text-sm"
+                                        mobileFS ? "px-4 py-1.5 text-sm" : "px-3 py-1 text-[10px] sm:text-sm"
                                     }`}
                                 >
                                     {mobileFS ? "⛶" : "Full Screen"}
                                 </button>
-                                <button
-                                    onClick={() => window.location.reload()}
-                                    className={`bg-white border-2 border-slate-300 rounded-xl font-bold text-red-500 active:bg-slate-50 ${
-                                        mobileFS ? "px-2 py-0.5 text-[9px]" : "px-3 py-1 text-[10px] sm:text-sm"
-                                    }`}
-                                >
-                                    {mobileFS ? "↺" : "Restart"}
-                                </button>
+                                {!mobileFS && (
+                                    <button
+                                        onClick={() => setState(generateNewGame())}
+                                        className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm text-red-500 active:bg-slate-50"
+                                    >
+                                        Restart
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
