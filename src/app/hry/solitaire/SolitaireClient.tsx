@@ -47,13 +47,7 @@ function generateNewGame(): GameState {
             tableau[col].push(card);
         }
     }
-    return {
-        stock: deck.slice(idx).map(c => ({ ...c, faceUp: false })),
-        waste: [],
-        foundations: [[], [], [], []],
-        tableau,
-        moves: 0,
-    };
+    return { stock: deck.slice(idx).map(c => ({ ...c, faceUp: false })), waste: [], foundations: [[], [], [], []], tableau, moves: 0 };
 }
 
 function canPlaceOnFoundation(card: Card, foundation: Card[]): boolean {
@@ -71,12 +65,20 @@ function canPlaceOnTableau(card: Card, column: Card[]): boolean {
     return isRed(card.suit) !== isRed(top.suit) && card.value === top.value - 1;
 }
 
+// ── OPRAVA TYPŮ ZDE ────────────────────────────────────────
+interface CardViewProps {
+    card: Card;
+    isDragging?: boolean;
+    isSelected?: boolean;
+    onDragStart?: (e: React.DragEvent) => void;
+    onClick?: (e?: React.MouseEvent) => void; // Přidáno e? pro kompatibilitu
+    onDoubleClick?: () => void;
+    isFullscreen: boolean;
+}
+
 function CardView({
-                      card, isDragging, onDragStart, onDoubleClick, isFullscreen
-                  }: {
-    card: Card; isDragging?: boolean; onDragStart?: (e: React.DragEvent) => void;
-    onDoubleClick?: () => void; isFullscreen: boolean;
-}) {
+                      card, isDragging, isSelected, onDragStart, onClick, onDoubleClick, isFullscreen
+                  }: CardViewProps) {
     const red = isRed(card.suit);
     const cardStyle: React.CSSProperties = {
         aspectRatio: "2/3",
@@ -85,40 +87,29 @@ function CardView({
         minWidth: isFullscreen ? "11vh" : "100px",
     };
 
-    const baseClass = `relative rounded-xl border-2 transition-all overflow-hidden flex flex-col select-none
+    const baseClass = `relative rounded-xl border-2 transition-all overflow-hidden flex flex-col select-none touch-manipulation
         ${isDragging ? "opacity-0 scale-105" : "opacity-100 shadow-lg"}
+        ${isSelected ? "ring-4 ring-yellow-400 scale-105 z-50 border-yellow-500 shadow-2xl" : ""}
         ${!card.faceUp ? "bg-blue-800 border-white shadow-md" : "bg-white border-gray-300 hover:border-blue-500 cursor-grab"}`;
 
     if (!card.faceUp) {
-        return (
-            <div className={baseClass} style={cardStyle}>
-                <div className="absolute inset-1 rounded-lg border border-white/20 overflow-hidden">
-                    <div className="w-full h-full opacity-40"
-                         style={{
-                             backgroundColor: "#1e3a8a",
-                             backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px), radial-gradient(#ffffff 1px, #1e3a8a 1px)",
-                             backgroundSize: "16px 16px"
-                         }}
-                    />
-                </div>
-            </div>
-        );
+        return <div className={baseClass} style={cardStyle} onClick={() => onClick?.()} />;
     }
 
     return (
-        <div draggable onDragStart={onDragStart} onDoubleClick={onDoubleClick}
+        <div draggable onDragStart={onDragStart} onDoubleClick={onDoubleClick} onClick={onClick}
              className={`${baseClass} ${red ? "text-red-600" : "text-slate-900"}`}
              style={cardStyle}
         >
             <div className="p-1.5 flex flex-col h-full justify-between items-start relative font-sans">
-                <div className="leading-none font-black flex flex-col items-center" style={{ fontSize: isFullscreen ? "2.2vh" : "1.2rem" }}>
+                <div className="leading-none font-black flex flex-col items-center" style={{ fontSize: isFullscreen ? "2.4vh" : "1.2rem" }}>
                     <span>{label(card.value)}</span>
                     <span className="mt-0.5">{card.suit}</span>
                 </div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.1]" style={{ fontSize: isFullscreen ? "6vh" : "4rem" }}>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.1]" style={{ fontSize: isFullscreen ? "7vh" : "4.5rem" }}>
                     {card.suit}
                 </div>
-                <div className="leading-none font-black self-end rotate-180 flex flex-col items-center" style={{ fontSize: isFullscreen ? "2.2vh" : "1.2rem" }}>
+                <div className="leading-none font-black self-end rotate-180 flex flex-col items-center" style={{ fontSize: isFullscreen ? "2.4vh" : "1.2rem" }}>
                     <span>{label(card.value)}</span>
                     <span className="mt-0.5">{card.suit}</span>
                 </div>
@@ -161,20 +152,27 @@ export default function SolitaireClient() {
             }
             return { ...prev, foundations: newFoundations, tableau: newTableau, waste: newWaste, moves: prev.moves + 1 };
         });
+        setSource(null); setDraggedIds([]);
     };
 
-    const handleDragStart = (type: string, cards: Card[], colIdx?: number, cardIdx?: number) => {
+    const handleSelect = (type: string, cards: Card[], colIdx?: number, cardIdx?: number) => {
+        if (!cards[0]?.faceUp) return;
+        if (source && source.cards[0].id === cards[0].id) {
+            setSource(null); setDraggedIds([]); return;
+        }
         setSource({ type, colIdx, cardIdx, cards });
-        setTimeout(() => setDraggedIds(cards.map(c => c.id)), 0);
+        setDraggedIds(cards.map(c => c.id));
     };
 
-    const handleDrop = (targetType: "tableau" | "foundation", targetIdx: number) => {
-        if (!source || !state) { setDraggedIds([]); setSource(null); return; }
+    const handleTargetClick = (targetType: "tableau" | "foundation", targetIdx: number) => {
+        if (!source || !state) return;
         const cards = source.cards;
         let canMove = targetType === "tableau"
             ? canPlaceOnTableau(cards[0], state.tableau[targetIdx])
             : cards.length === 1 && canPlaceOnFoundation(cards[0], state.foundations[targetIdx]);
-        if (!canMove) { setDraggedIds([]); setSource(null); return; }
+
+        if (!canMove) return;
+
         setState(prev => {
             if (!prev) return null;
             const newTableau = prev.tableau.map(c => [...c]);
@@ -189,37 +187,38 @@ export default function SolitaireClient() {
             else newFoundations[targetIdx] = [...newFoundations[targetIdx], cards[0]];
             return { ...prev, tableau: newTableau, foundations: newFoundations, waste: newWaste, moves: prev.moves + 1 };
         });
-        setDraggedIds([]); setSource(null);
+        setSource(null); setDraggedIds([]);
     };
 
     if (!state) return null;
-
-    const gridGap = isFullscreen ? "gap-6" : "gap-4";
+    const gridGap = isFullscreen ? "gap-2 sm:gap-6" : "gap-4";
 
     return (
-        <div ref={containerRef} className={`flex flex-col transition-all duration-500 ${isFullscreen ? "h-screen w-screen fixed inset-0 p-8 bg-slate-300 overflow-y-auto items-center" : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"}`}>
+        <div ref={containerRef} className={`flex flex-col transition-all duration-500 ${isFullscreen ? "h-screen w-screen fixed inset-0 p-2 sm:p-8 bg-slate-300 overflow-hidden items-center justify-center" : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"}`}>
+            <div className={`flex flex-col h-full ${isFullscreen ? "w-full sm:w-fit" : "w-full"}`}>
 
-            <div className={`flex flex-col h-full ${isFullscreen ? "w-fit pt-4" : "w-full"}`}>
-
-                {/* Header */}
-                <div className={`flex items-center justify-between mb-8 border-b pb-4 px-1 ${isFullscreen ? "border-slate-400" : "border-slate-300"}`}>
-                    <span className="font-black text-2xl tracking-tighter text-slate-800">SOLITAIRE</span>
-                    <div className="flex gap-6 items-center">
-                        <div className="text-right">
-                            <span className="text-[10px] uppercase font-bold block text-slate-500">Tahy</span>
-                            <span className="text-2xl font-black text-slate-800 leading-none">{state.moves}</span>
+                <div className={`flex items-center justify-between border-b px-1 ${isFullscreen ? "border-slate-400 mb-4 py-1" : "border-slate-300 mb-8 pb-4"}`}>
+                    <span className={`font-black tracking-tighter text-slate-800 ${isFullscreen ? "hidden sm:block text-2xl" : "text-2xl"}`}>SOLITAIRE</span>
+                    <div className={`flex items-center gap-4 sm:gap-6 ${isFullscreen ? "w-full sm:w-auto justify-between" : ""}`}>
+                        <div className="flex flex-row items-center gap-2">
+                            <span className="text-[10px] uppercase font-bold text-slate-500">Tahy</span>
+                            <span className="text-xl sm:text-2xl font-black text-slate-800 leading-none">{state.moves}</span>
                         </div>
-                        <button onClick={toggleFullscreen} className="bg-white border-2 border-slate-300 px-5 py-2 rounded-xl font-bold text-sm hover:border-blue-500 transition-all shadow-sm">
-                            {isFullscreen ? "Zmenšit" : "Celá obrazovka"}
-                        </button>
-                        <button onClick={() => window.location.reload()} className="bg-white border-2 border-slate-300 px-5 py-2 rounded-xl font-bold text-sm hover:border-red-400 transition-all shadow-sm">Restart</button>
+                        <div className="flex gap-2">
+                            <button onClick={toggleFullscreen} className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm shadow-sm">
+                                Full Screen
+                            </button>
+                            <button onClick={() => window.location.reload()} className="bg-white border-2 border-slate-300 px-3 py-1 rounded-xl font-bold text-[10px] sm:text-sm text-red-500">
+                                Restart
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* Horní řada */}
-                <div className={`grid grid-cols-7 mb-10 ${gridGap}`}>
-                    <div className="flex gap-2 col-span-2">
+                <div className={`grid grid-cols-7 mb-6 sm:mb-12 ${gridGap}`}>
+                    <div className="flex gap-1 sm:gap-2 col-span-2">
                         <div className="w-fit" onClick={() => {
+                            if (source) { setSource(null); setDraggedIds([]); }
                             setState(prev => {
                                 if (!prev) return prev;
                                 if (prev.stock.length === 0) return { ...prev, stock: [...prev.waste].map(c => ({...c, faceUp: false})).reverse(), waste: [] };
@@ -232,43 +231,42 @@ export default function SolitaireClient() {
                         </div>
                         <div className="w-fit">
                             {state.waste.length > 0 && (
-                                <CardView card={state.waste[state.waste.length-1]} isDragging={draggedIds.includes(state.waste[state.waste.length-1].id)}
-                                          onDragStart={() => handleDragStart("waste", [state.waste[state.waste.length-1]])}
+                                <CardView card={state.waste[state.waste.length-1]}
+                                          isSelected={source?.type === "waste"}
+                                          onClick={() => handleSelect("waste", [state.waste[state.waste.length-1]])}
+                                          onDragStart={() => handleSelect("waste", [state.waste[state.waste.length-1]])}
                                           onDoubleClick={() => handleAutoMove(state.waste[state.waste.length-1], "waste")} isFullscreen={isFullscreen} />
                             )}
                         </div>
                     </div>
-
-                    <div className="col-span-1"></div>
-
-                    <div className="col-span-4 grid grid-cols-4 gap-2">
+                    <div className="col-span-1" onClick={() => {setSource(null); setDraggedIds([]);}}></div>
+                    <div className="col-span-4 grid grid-cols-4 gap-1 sm:gap-2">
                         {state.foundations.map((f, fi) => (
-                            <div key={fi} onDragOver={e => e.preventDefault()} onDrop={() => handleDrop("foundation", fi)}>
+                            <div key={fi} onClick={() => handleTargetClick("foundation", fi)} onDragOver={e => e.preventDefault()} onDrop={() => handleTargetClick("foundation", fi)}>
                                 {f.length > 0 ? <CardView card={f[f.length-1]} isFullscreen={isFullscreen} /> : (
-                                    <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-3xl font-black shadow-inner" style={{aspectRatio: "2/3", height: isFullscreen ? "16.5vh" : "150px"}}>
-                                        {SUITS[fi]}
-                                    </div>
+                                    <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-xl sm:text-3xl font-black shadow-inner" style={{aspectRatio: "2/3", height: isFullscreen ? "16.5vh" : "150px"}}>{SUITS[fi]}</div>
                                 )}
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Tableau - ZVĚTŠENÝ ODSTUP MEZI KARTAMI VE FS */}
                 <div className={`grid grid-cols-7 flex-grow items-start ${gridGap}`}>
                     {state.tableau.map((col, ci) => (
-                        <div key={ci} className="flex flex-col items-center relative h-full" onDragOver={e => e.preventDefault()} onDrop={() => handleDrop("tableau", ci)}>
+                        <div key={ci} className="flex flex-col items-center relative h-full"
+                             onClick={() => {
+                                 if (source && (source.type !== "tableau" || source.colIdx !== ci)) handleTargetClick("tableau", ci);
+                             }}
+                             onDragOver={e => e.preventDefault()} onDrop={() => handleTargetClick("tableau", ci)}>
                             {col.length === 0 && <div className="rounded-xl border-2 border-dashed border-slate-400 opacity-20" style={{aspectRatio:"2/3", width: isFullscreen ? "11vh" : "100px"}} />}
                             {col.map((card, cardIdx) => {
-                                const overlap = cardIdx === 0 ? "0" : (
-                                    isFullscreen
-                                        ? (col[cardIdx-1].faceUp ? "-12vh" : "-14.5vh") // Odkryto více z lícové karty (-12vh místo -14.5vh)
-                                        : (col[cardIdx-1].faceUp ? "-105px" : "-120px")
-                                );
+                                const overlap = cardIdx === 0 ? "0" : (isFullscreen ? (col[cardIdx-1].faceUp ? "-12vh" : "-14.5vh") : (col[cardIdx-1].faceUp ? "-105px" : "-120px"));
                                 return (
                                     <div key={card.id} style={{ marginTop: overlap, zIndex: cardIdx, position: "relative" }}>
-                                        <CardView card={card} isDragging={draggedIds.includes(card.id)}
-                                                  onDragStart={() => handleDragStart("tableau", col.slice(cardIdx), ci, cardIdx)}
+                                        <CardView card={card}
+                                                  isSelected={draggedIds.includes(card.id)}
+                                                  onClick={(e) => { e?.stopPropagation(); if (card.faceUp) handleSelect("tableau", col.slice(cardIdx), ci, cardIdx); }}
+                                                  onDragStart={() => handleSelect("tableau", col.slice(cardIdx), ci, cardIdx)}
                                                   onDoubleClick={() => cardIdx === col.length - 1 && handleAutoMove(card, "tableau", ci)} isFullscreen={isFullscreen} />
                                     </div>
                                 );
