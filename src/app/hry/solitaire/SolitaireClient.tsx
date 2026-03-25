@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 // ── Typy a pomocné funkce ──────────────────────────────────
 type Suit = "♠" | "♥" | "♦" | "♣";
@@ -115,6 +115,38 @@ export default function SolitaireClient() {
     const [source, setSource] = useState<{ type: string; colIdx?: number; cardIdx?: number; cards: Card[] } | null>(null);
     const [won, setWon] = useState(false);
     const [isAutoFinishing, setIsAutoFinishing] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const toggleFullscreen = useCallback(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        if (!document.fullscreenElement) {
+            el.requestFullscreen?.().then(() => {
+                setIsFullscreen(true);
+                // Požádat o landscape orientaci na mobilu
+                if (screen.orientation && "lock" in screen.orientation) {
+                    (screen.orientation as ScreenOrientation & { lock: (o: string) => Promise<void> })
+                        .lock("landscape").catch(() => {});
+                }
+            }).catch(() => {});
+        } else {
+            document.exitFullscreen?.().then(() => {
+                setIsFullscreen(false);
+                if (screen.orientation && "unlock" in screen.orientation) {
+                    (screen.orientation as ScreenOrientation & { unlock: () => void }).unlock();
+                }
+            }).catch(() => {});
+        }
+    }, []);
+
+    useEffect(() => {
+        const onChange = () => {
+            if (!document.fullscreenElement) setIsFullscreen(false);
+        };
+        document.addEventListener("fullscreenchange", onChange);
+        return () => document.removeEventListener("fullscreenchange", onChange);
+    }, []);
 
     useEffect(() => { setState(generateNewGame()); }, []);
 
@@ -202,7 +234,10 @@ export default function SolitaireClient() {
     if (!state) return null;
 
     return (
-        <div className="flex flex-col gap-6 max-w-5xl mx-auto p-4 min-h-screen bg-white">
+        <div
+            ref={containerRef}
+            className={`flex flex-col gap-3 bg-white ${isFullscreen ? "fixed inset-0 z-[9999] overflow-auto p-3" : "max-w-5xl mx-auto p-4 min-h-screen"}`}
+        >
             {won && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-blue-900/40 backdrop-blur-md">
                     <div className="bg-white p-12 rounded-[40px] text-center border-[12px] border-blue-500">
@@ -215,7 +250,12 @@ export default function SolitaireClient() {
             <div className="flex items-center justify-between border-b pb-4">
                 <span className="font-black text-xl text-blue-600 tracking-tighter">SOLITAIRE</span>
                 <div className="flex flex-col items-center"><span className="text-[10px] text-gray-400 font-bold uppercase">Tahy</span><span className="text-2xl font-black">{state.moves}</span></div>
-                <button onClick={() => window.location.reload()} className="bg-slate-100 px-4 py-2 rounded-lg font-bold">Restart</button>
+                <div className="flex gap-2">
+                    <button onClick={toggleFullscreen} className="bg-slate-100 px-3 py-2 rounded-lg font-bold text-sm" title="Fullscreen">
+                        {isFullscreen ? "✕ Konec" : "⛶ Celá obrazovka"}
+                    </button>
+                    <button onClick={() => window.location.reload()} className="bg-slate-100 px-3 py-2 rounded-lg font-bold text-sm">↺ Restart</button>
+                </div>
             </div>
 
             <div className="grid grid-cols-7 gap-3">

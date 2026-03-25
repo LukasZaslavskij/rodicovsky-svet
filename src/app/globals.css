@@ -66,3 +66,10 @@ h1, h2, h3, h4 {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(201,96,122,0.08);
 }
+
+/* ── Fullscreen hra – skryj lištu ── */
+:fullscreen header,
+:-webkit-full-screen header,
+:-moz-full-screen header {
+  display: none !important;
+}
