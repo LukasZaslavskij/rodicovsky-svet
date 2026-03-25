@@ -124,11 +124,19 @@ export default function SolitaireClient() {
     const [draggedIds, setDraggedIds] = useState<string[]>([]);
     const [source, setSource] = useState<{ type: string; colIdx?: number; cardIdx?: number; cards: Card[] } | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isLandscape, setIsLandscape] = useState(true);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    const checkOrientation = useCallback(() => {
+        setIsLandscape(window.innerWidth > window.innerHeight);
+    }, []);
 
     const toggleFullscreen = useCallback(() => {
         if (!document.fullscreenElement) {
-            containerRef.current?.requestFullscreen?.().catch(() => {});
+            containerRef.current?.requestFullscreen?.().catch(() => {
+                // Pokud FS selže (např. v iOS Safari), alespoň zkusíme scroll
+                window.scrollTo(0, 1);
+            });
         } else {
             document.exitFullscreen?.();
         }
@@ -140,11 +148,19 @@ export default function SolitaireClient() {
     };
 
     useEffect(() => {
-        const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+        const onChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+            checkOrientation();
+        };
+        window.addEventListener("resize", checkOrientation);
         document.addEventListener("fullscreenchange", onChange);
+        checkOrientation();
         setState(generateNewGame());
-        return () => document.removeEventListener("fullscreenchange", onChange);
-    }, []);
+        return () => {
+            window.removeEventListener("resize", checkOrientation);
+            document.removeEventListener("fullscreenchange", onChange);
+        };
+    }, [checkOrientation]);
 
     // ── Logika pohybu ────────────────────────────────────────
     const executeMove = (targetType: "tableau" | "foundation", targetIdx: number) => {
@@ -206,28 +222,25 @@ export default function SolitaireClient() {
 
     if (!state) return null;
 
-    // ── Mobilní Blocker ─────────────────────────────────────
-    const isMobileDevice = typeof window !== 'undefined' && ('ontouchstart' in window);
+    // ── OPRAVENÝ Mobilní Blocker ─────────────────────────────
+    const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window);
+    // Hru ukážeme pokud:
+    // 1. Jsme na PC (není touch)
+    // 2. JSME na mobilu, ale ZÁROVEŇ jsme na šířku (landscape)
+    const showBlocker = isTouchDevice && !isLandscape;
 
-    if (isMobileDevice && !isFullscreen) {
+    if (showBlocker) {
         return (
             <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 text-center z-[999]">
-                <div className="text-6xl mb-6">📱🔄</div>
-                <h1 className="text-white text-2xl font-bold mb-4 uppercase tracking-tight">Hrejte na šířku</h1>
-                <p className="text-slate-400 mb-8 max-w-xs">Pro nejlepší zážitek musíte otočit telefon na šířku a zapnout celou obrazovku.</p>
-
+                <div className="text-6xl mb-6 animate-pulse rotate-90">📱</div>
+                <h1 className="text-white text-2xl font-bold mb-4">OTOČTE TELEFON</h1>
+                <p className="text-slate-400 mb-8 max-w-xs">Pro hraní Solitaire musíte mít telefon otočený na šířku.</p>
                 <div className="flex flex-col gap-4 w-full max-w-xs">
-                    <button
-                        onClick={toggleFullscreen}
-                        className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-transform"
-                    >
+                    <button onClick={toggleFullscreen} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-xl active:bg-blue-700 transition-colors">
                         ZAPNOUT FULL SCREEN
                     </button>
-                    <button
-                        onClick={handleBack}
-                        className="bg-slate-800 text-slate-300 px-8 py-3 rounded-2xl font-bold text-lg border border-slate-700 active:scale-95 transition-transform"
-                    >
-                        ← Zpět
+                    <button onClick={handleBack} className="bg-slate-800 text-slate-300 px-8 py-3 rounded-2xl font-bold text-lg border border-slate-700 active:bg-slate-700 transition-colors">
+                        ← ZPĚT
                     </button>
                 </div>
             </div>
