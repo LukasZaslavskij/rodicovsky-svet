@@ -390,15 +390,34 @@ export default function SolitaireClient() {
                     </div>
 
                     {/* ── Tableau ── */}
-                    <div className={`grid grid-cols-7 flex-grow items-start ${isFullscreen ? "gap-2" : "gap-4"}`}>
+                    <div className={`grid grid-cols-7 flex-grow items-start ${isFullscreen ? "gap-2" : "gap-4"} ${mobileFS ? "overflow-hidden" : ""}`} style={mobileFS ? { maxHeight: "calc(100vh - 12vh - 5vh)" } : {}}>
                         {state.tableau.map((col, ci) => {
-                            // Dynamický overlap pro mobileFS – čím delší sloupec, tím větší překryv
+                            // Pro mobileFS spočítej overlap dynamicky podle délky sloupce
                             let dynOverlapFaceUp = overlapFaceUp;
                             let dynOverlapFaceDown = overlapFaceDown;
-                            if (mobileFS && col.length > 7) {
-                                const squeeze = Math.min((col.length - 7) * 0.8, 8);
-                                dynOverlapFaceUp   = `-${16 + squeeze}vh`;
-                                dynOverlapFaceDown = `-${19.5 + squeeze}vh`;
+                            if (mobileFS && col.length > 1) {
+                                const availableVh = 63; // dostupná výška tableau v vh
+                                const cardVh = 22;
+                                const faceDownCount = col.filter(c => !c.faceUp).length;
+                                const faceUpCount = col.filter(c => c.faceUp).length;
+                                // Spočítej potřebný overlap: cardVh + (n-1)*overlap <= availableVh
+                                const neededOverlap = (availableVh - cardVh) / (col.length - 1);
+                                const defaultUp = 16;
+                                const defaultDown = 19.5;
+                                if (neededOverlap < defaultUp) {
+                                    // Face-down karty jsou menší -> dej jim proporčně menší overlap
+                                    const downRatio = defaultDown / defaultUp;
+                                    // Průměrný overlap = (faceUpCount * upOvl + faceDownCount * downOvl) / (n-1)
+                                    // downOvl = upOvl * downRatio
+                                    // => upOvl = neededOverlap * (n-1) / (faceUpCount + faceDownCount * downRatio)
+                                    const slots = faceUpCount + faceDownCount * downRatio;
+                                    const upOvl = slots > 0
+                                        ? Math.min(neededOverlap * (col.length - 1) / slots, defaultUp)
+                                        : neededOverlap;
+                                    const downOvl = Math.min(upOvl * downRatio, defaultDown);
+                                    dynOverlapFaceUp   = `-${upOvl}vh`;
+                                    dynOverlapFaceDown = `-${downOvl}vh`;
+                                }
                             }
                             return (
                             <div key={ci}
