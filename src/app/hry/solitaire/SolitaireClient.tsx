@@ -217,6 +217,41 @@ export default function SolitaireClient() {
         setDraggedIds([]);
     }, []);
 
+    // ── Auto-complete: když jsou všechny karty otočené, automaticky přesuň na foundations ──
+    useEffect(() => {
+        if (!state) return;
+        const allFaceUp = state.tableau.every(col => col.every(c => c.faceUp))
+            && state.stock.length === 0;
+        if (!allFaceUp) return;
+
+        const timer = setTimeout(() => {
+            setState(prev => {
+                if (!prev) return null;
+                const sources: { card: Card; from: "waste" | "tableau"; colIdx?: number }[] = [];
+                if (prev.waste.length > 0) sources.push({ card: prev.waste[prev.waste.length - 1], from: "waste" });
+                prev.tableau.forEach((col, ci) => {
+                    if (col.length > 0) sources.push({ card: col[col.length - 1], from: "tableau", colIdx: ci });
+                });
+                for (const src of sources) {
+                    for (let fi = 0; fi < 4; fi++) {
+                        if (canPlaceOnFoundation(src.card, prev.foundations[fi])) {
+                            const newTableau = prev.tableau.map(c => [...c]);
+                            const newFoundations = prev.foundations.map(f => [...f]);
+                            let newWaste = [...prev.waste];
+                            if (src.from === "waste") newWaste.pop();
+                            else if (src.from === "tableau" && src.colIdx !== undefined)
+                                newTableau[src.colIdx] = newTableau[src.colIdx].slice(0, -1);
+                            newFoundations[fi] = [...newFoundations[fi], src.card];
+                            return { ...prev, tableau: newTableau, foundations: newFoundations, waste: newWaste, moves: prev.moves + 1 };
+                        }
+                    }
+                }
+                return prev;
+            });
+        }, 150);
+        return () => clearTimeout(timer);
+    }, [state]);
+
     const handleActionStart = (type: string, cards: Card[], colIdx?: number, cardIdx?: number) => {
         if (type === "stock") {
             setState(prev => {
