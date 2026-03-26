@@ -142,6 +142,8 @@ export default function SolitaireClient() {
     const [isIOS, setIsIOS] = useState(false);
     const [cssFullscreen, setCssFullscreen] = useState(false); // pro iOS simulaci
     const [windowHeight, setWindowHeight] = useState(0); // skutečná výška okna v px
+    const tableauRef = useRef<HTMLDivElement>(null);
+    const [tableauHeight, setTableauHeight] = useState(0);
     const [touchDragPos, setTouchDragPos] = useState<{ x: number; y: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const sourceRef = useRef(source);
@@ -258,6 +260,13 @@ export default function SolitaireClient() {
         setSource(null);
         setDraggedIds([]);
     }, []);
+
+    // ── Měř skutečnou výšku tableau divu ──
+    useEffect(() => {
+        if (!tableauRef.current) return;
+        const h = tableauRef.current.getBoundingClientRect().height;
+        if (h > 0) setTableauHeight(h);
+    });
 
     // ── Auto-complete: když jsou všechny karty otočené, automaticky přesuň na foundations ──
     useEffect(() => {
@@ -481,24 +490,26 @@ export default function SolitaireClient() {
                     </div>
 
                     {/* ── Tableau ── */}
-                    <div className={`grid grid-cols-7 flex-grow items-start ${effectiveFullscreen ? "gap-2" : "gap-4"}`}>
+                    <div ref={tableauRef} className={`grid grid-cols-7 flex-grow items-start ${effectiveFullscreen ? "gap-2" : "gap-4"}`}>
                         {state.tableau.map((col, ci) => {
                             let dynOverlapFaceUp = overlapFaceUp;
                             let dynOverlapFaceDown = overlapFaceDown;
-                            if (mobileFS && col.length > 1 && windowHeight > 0) {
-                                // Použij skutečnou výšku okna v px – přesné na iOS
-                                // Karta je 22vh vysoká, header ~5vh, horní řada ~25vh, padding ~2vh
-                                const cardPx = windowHeight * 0.22;
-                                const defaultUpPx = windowHeight * 0.16;
-                                const defaultDownPx = windowHeight * 0.195;
-                                const availablePx = windowHeight * 0.63;
-                                const faceDownCount = col.filter((c, i) => i > 0 && !col[i-1].faceUp).length;
-                                const faceUpCount = (col.length - 1) - faceDownCount;
-                                const totalH = cardPx + faceUpCount * (cardPx - defaultUpPx) + faceDownCount * (cardPx - defaultDownPx);
-                                if (totalH > availablePx) {
-                                    const extra = (totalH - availablePx) / (col.length - 1);
-                                    dynOverlapFaceUp   = `-${defaultUpPx + extra}px`;
-                                    dynOverlapFaceDown = `-${defaultDownPx + extra}px`;
+                            if (mobileFS && col.length > 1) {
+                                // Použij skutečnou výšku tableau nebo odhad z windowHeight
+                                const availablePx = tableauHeight > 0 ? tableauHeight
+                                    : windowHeight > 0 ? windowHeight * 0.63 : 0;
+                                if (availablePx > 0) {
+                                    const cardPx = windowHeight > 0 ? windowHeight * 0.22 : availablePx * 0.35;
+                                    const defaultUpPx = cardPx * (16/22);
+                                    const defaultDownPx = cardPx * (19.5/22);
+                                    const faceDownCount = col.filter((c, i) => i > 0 && !col[i-1].faceUp).length;
+                                    const faceUpCount = (col.length - 1) - faceDownCount;
+                                    const totalH = cardPx + faceUpCount * (cardPx - defaultUpPx) + faceDownCount * (cardPx - defaultDownPx);
+                                    if (totalH > availablePx) {
+                                        const extra = (totalH - availablePx) / (col.length - 1);
+                                        dynOverlapFaceUp   = `-${defaultUpPx + extra}px`;
+                                        dynOverlapFaceDown = `-${defaultDownPx + extra}px`;
+                                    }
                                 }
                             }
                             return (
