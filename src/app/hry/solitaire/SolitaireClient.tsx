@@ -139,6 +139,8 @@ export default function SolitaireClient() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLandscape, setIsLandscape] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
+    const [isIOS, setIsIOS] = useState(false);
+    const [cssFullscreen, setCssFullscreen] = useState(false); // pro iOS simulaci
     const [touchDragPos, setTouchDragPos] = useState<{ x: number; y: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const sourceRef = useRef(source);
@@ -176,12 +178,17 @@ export default function SolitaireClient() {
     }, []);
 
     const toggleFullscreen = useCallback(() => {
+        // iOS Safari nepodporuje fullscreen API – simulujeme přes CSS
+        if (isIOS) {
+            setCssFullscreen(prev => !prev);
+            return;
+        }
         if (!document.fullscreenElement) {
             containerRef.current?.requestFullscreen?.().catch(() => {});
         } else {
             document.exitFullscreen?.();
         }
-    }, []);
+    }, [isIOS]);
 
     // Globální touchmove – aktualizuje pozici plovoucí karty a blokuje scroll při dragu
     useEffect(() => {
@@ -196,7 +203,10 @@ export default function SolitaireClient() {
     }, []);
 
     useEffect(() => {
-        setIsMobile("ontouchstart" in window);
+        const mobile = "ontouchstart" in window;
+        const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+        setIsMobile(mobile);
+        setIsIOS(ios);
         const onChange = () => setIsFullscreen(!!document.fullscreenElement);
         window.addEventListener("resize", checkOrientation);
         window.addEventListener("orientationchange", checkOrientation);
@@ -321,12 +331,14 @@ export default function SolitaireClient() {
 
     if (!state) return null;
 
-    const showBlocker = isMobile && (!isLandscape || !isFullscreen);
-    const mobileFS = isMobile && isFullscreen && isLandscape;
-    const cardH = cardHeight(isFullscreen, mobileFS);
-    const cardW = cardMinWidth(isFullscreen, mobileFS);
-    const overlapFaceUp   = mobileFS ? "-16vh"   : isFullscreen ? "-12vh"   : "-105px";
-    const overlapFaceDown = mobileFS ? "-19.5vh" : isFullscreen ? "-14.5vh" : "-120px";
+    // Na iOS použijeme cssFullscreen místo skutečného fullscreen API
+    const effectiveFullscreen = isIOS ? cssFullscreen : isFullscreen;
+    const showBlocker = isMobile && (!isLandscape || !effectiveFullscreen);
+    const mobileFS = isMobile && effectiveFullscreen && isLandscape;
+    const cardH = cardHeight(effectiveFullscreen, mobileFS);
+    const cardW = cardMinWidth(effectiveFullscreen, mobileFS);
+    const overlapFaceUp   = mobileFS ? "-16vh"   : effectiveFullscreen ? "-12vh"   : "-105px";
+    const overlapFaceDown = mobileFS ? "-19.5vh" : effectiveFullscreen ? "-14.5vh" : "-120px";
 
     return (
         // Jeden stálý wrapper s ref – nikdy se neodmountuje, takže fullscreen zůstane
@@ -363,7 +375,7 @@ export default function SolitaireClient() {
             <div
                 className={`flex flex-col transition-all duration-500 ${
                     showBlocker ? "invisible" :
-                    isFullscreen
+                    effectiveFullscreen
                         ? mobileFS
                             ? "h-screen w-screen fixed inset-0 p-1 bg-slate-300 overflow-hidden"
                             : "h-screen w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center"
@@ -372,17 +384,17 @@ export default function SolitaireClient() {
                 onTouchEnd={handleTouchEnd}
             >
                 <div className={`flex flex-col h-full ${
-                    isFullscreen ? (mobileFS ? "w-full" : "w-full sm:w-fit") : "w-full"
+                    effectiveFullscreen ? (mobileFS ? "w-full" : "w-full sm:w-fit") : "w-full"
                 }`}>
 
                     {/* ── Header ── */}
                     <div className={`flex items-center justify-between border-b px-1 ${
-                        isFullscreen
+                        effectiveFullscreen
                             ? mobileFS ? "border-slate-400 mb-2 py-0.5" : "border-slate-400 mb-4 py-1"
                             : "border-slate-300 mb-8 pb-4"
                     }`}>
                         <span className={`font-black tracking-tighter text-slate-800 ${
-                            isFullscreen ? "hidden sm:block text-2xl" : "text-2xl"
+                            effectiveFullscreen ? "hidden sm:block text-2xl" : "text-2xl"
                         }`}>SOLITAIRE</span>
 
                         <div className={`flex items-center ${mobileFS ? "gap-2" : "gap-4"}`}>
@@ -414,14 +426,14 @@ export default function SolitaireClient() {
                     </div>
 
                     {/* ── Horní řada ── */}
-                    <div className={`grid grid-cols-7 mb-4 ${isFullscreen ? "gap-2" : "gap-4"}`}>
+                    <div className={`grid grid-cols-7 mb-4 ${effectiveFullscreen ? "gap-2" : "gap-4"}`}>
                         <div className="flex gap-1 sm:gap-2 col-span-2">
                             <div className="w-fit"
                                 onClick={(e) => { if (!('ontouchstart' in window)) handleActionStart("stock", []); }}
                                 onTouchEnd={(e) => { e.stopPropagation(); handleActionStart("stock", []); }}
                                 style={{ touchAction: "none" }}>
                                 {state.stock.length > 0
-                                    ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={isFullscreen} mobileFS={mobileFS} />
+                                    ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} />
                                     : <div className="rounded-xl border-4 border-dashed border-slate-400 flex items-center justify-center text-4xl text-slate-400"
                                         style={{ aspectRatio: "2/3", height: cardH }}>↺</div>
                                 }
@@ -434,7 +446,7 @@ export default function SolitaireClient() {
                                         onClick={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
                                         onDragStart={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
                                         onTouchStart={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
-                                        isFullscreen={isFullscreen} mobileFS={mobileFS}
+                                        isFullscreen={effectiveFullscreen} mobileFS={mobileFS}
                                     />
                                 )}
                             </div>
@@ -448,7 +460,7 @@ export default function SolitaireClient() {
                                     onDragOver={e => e.preventDefault()}
                                     onDrop={() => executeMove("foundation", fi)}>
                                     {f.length > 0
-                                        ? <CardView card={f[f.length - 1]} isFullscreen={isFullscreen} mobileFS={mobileFS} />
+                                        ? <CardView card={f[f.length - 1]} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} />
                                         : <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-xl sm:text-3xl font-black shadow-inner"
                                             style={{ aspectRatio: "2/3", height: cardH }}>{SUITS[fi]}</div>
                                     }
@@ -458,7 +470,7 @@ export default function SolitaireClient() {
                     </div>
 
                     {/* ── Tableau ── */}
-                    <div className={`grid grid-cols-7 flex-grow items-start ${isFullscreen ? "gap-2" : "gap-4"}`}>
+                    <div className={`grid grid-cols-7 flex-grow items-start ${effectiveFullscreen ? "gap-2" : "gap-4"}`}>
                         {state.tableau.map((col, ci) => {
                             let dynOverlapFaceUp = overlapFaceUp;
                             let dynOverlapFaceDown = overlapFaceDown;
@@ -506,7 +518,7 @@ export default function SolitaireClient() {
                                                     e?.stopPropagation();
                                                     handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx);
                                                 }}
-                                                isFullscreen={isFullscreen} mobileFS={mobileFS}
+                                                isFullscreen={effectiveFullscreen} mobileFS={mobileFS}
                                             />
                                         </div>
                                     );
@@ -530,7 +542,7 @@ export default function SolitaireClient() {
                     }}>
                         {source.cards.map((card, i) => (
                             <div key={card.id} style={{ marginTop: i === 0 ? 0 : overlapFaceUp, position: "relative", zIndex: i }}>
-                                <CardView card={card} isFullscreen={isFullscreen} mobileFS={mobileFS} />
+                                <CardView card={card} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} />
                             </div>
                         ))}
                     </div>
