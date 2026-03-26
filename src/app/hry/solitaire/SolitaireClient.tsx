@@ -377,10 +377,11 @@ export default function SolitaireClient() {
                     showBlocker ? "invisible" :
                     effectiveFullscreen
                         ? mobileFS
-                            ? "h-screen w-screen fixed inset-0 p-1 bg-slate-300 overflow-hidden"
-                            : "h-screen w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center"
+                            ? "w-screen fixed inset-0 p-1 bg-slate-300 overflow-hidden"
+                            : "w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center"
                         : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"
                 }`}
+                style={effectiveFullscreen ? { height: '100svh' } : {}}
                 onTouchEnd={handleTouchEnd}
             >
                 <div className={`flex flex-col h-full ${
