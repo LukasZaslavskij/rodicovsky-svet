@@ -141,9 +141,31 @@ export default function SolitaireClient() {
     const [isMobile, setIsMobile] = useState(false);
     const [touchDragPos, setTouchDragPos] = useState<{ x: number; y: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    // Ref na source pro použití v globálním event listeneru
     const sourceRef = useRef(source);
     sourceRef.current = source;
+    const lastClickRef = useRef<{ id: string; time: number } | null>(null);
+
+    const autoMoveToFoundation = useCallback((card: Card, from: "waste" | "tableau", colIdx?: number) => {
+        setState(prev => {
+            if (!prev) return null;
+            for (let fi = 0; fi < 4; fi++) {
+                if (canPlaceOnFoundation(card, prev.foundations[fi])) {
+                    const newTableau = prev.tableau.map(c => [...c]);
+                    const newFoundations = prev.foundations.map(f => [...f]);
+                    let newWaste = [...prev.waste];
+                    if (from === "waste") newWaste.pop();
+                    else if (from === "tableau" && colIdx !== undefined) {
+                        newTableau[colIdx] = newTableau[colIdx].slice(0, -1);
+                        if (newTableau[colIdx].length > 0)
+                            newTableau[colIdx][newTableau[colIdx].length - 1].faceUp = true;
+                    }
+                    newFoundations[fi] = [...newFoundations[fi], card];
+                    return { ...prev, tableau: newTableau, foundations: newFoundations, waste: newWaste, moves: prev.moves + 1 };
+                }
+            }
+            return prev;
+        });
+    }, []);
 
     const checkOrientation = useCallback(() => {
         // Použij screen.orientation pokud je dostupné, jinak window rozměry
@@ -265,6 +287,17 @@ export default function SolitaireClient() {
             return;
         }
         if (!cards[0]?.faceUp) return;
+
+        // Double-click / double-tap – automaticky přesuň na foundation
+        const now = Date.now();
+        const cardId = cards[0].id;
+        if (lastClickRef.current?.id === cardId && now - lastClickRef.current.time < 400) {
+            lastClickRef.current = null;
+            autoMoveToFoundation(cards[0], type as "waste" | "tableau", colIdx);
+            return;
+        }
+        lastClickRef.current = { id: cardId, time: now };
+
         setSource({ type, colIdx, cardIdx, cards });
         setDraggedIds(cards.map(c => c.id));
     };
