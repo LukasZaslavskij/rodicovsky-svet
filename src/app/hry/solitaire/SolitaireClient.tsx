@@ -391,7 +391,16 @@ export default function SolitaireClient() {
 
                     {/* ── Tableau ── */}
                     <div className={`grid grid-cols-7 flex-grow items-start ${isFullscreen ? "gap-2" : "gap-4"}`}>
-                        {state.tableau.map((col, ci) => (
+                        {state.tableau.map((col, ci) => {
+                            // Dynamický overlap pro mobileFS – čím delší sloupec, tím větší překryv
+                            let dynOverlapFaceUp = overlapFaceUp;
+                            let dynOverlapFaceDown = overlapFaceDown;
+                            if (mobileFS && col.length > 7) {
+                                const squeeze = Math.min((col.length - 7) * 0.8, 8);
+                                dynOverlapFaceUp   = `-${16 + squeeze}vh`;
+                                dynOverlapFaceDown = `-${19.5 + squeeze}vh`;
+                            }
+                            return (
                             <div key={ci}
                                 className="flex flex-col items-center relative h-full"
                                 data-target data-target-type="tableau" data-target-idx={ci}
@@ -404,7 +413,7 @@ export default function SolitaireClient() {
                                 )}
                                 {col.map((card, cardIdx) => {
                                     const overlap = cardIdx === 0 ? "0"
-                                        : (col[cardIdx - 1].faceUp ? overlapFaceUp : overlapFaceDown);
+                                        : (col[cardIdx - 1].faceUp ? dynOverlapFaceUp : dynOverlapFaceDown);
                                     return (
                                         <div key={card.id} style={{ marginTop: overlap, zIndex: cardIdx, position: "relative" }}>
                                             <CardView
@@ -424,7 +433,8 @@ export default function SolitaireClient() {
                                     );
                                 })}
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
