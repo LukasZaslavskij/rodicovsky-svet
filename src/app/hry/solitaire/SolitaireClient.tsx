@@ -141,6 +141,7 @@ export default function SolitaireClient() {
     const [isMobile, setIsMobile] = useState(false);
     const [isIOS, setIsIOS] = useState(false);
     const [cssFullscreen, setCssFullscreen] = useState(false); // pro iOS simulaci
+    const [windowHeight, setWindowHeight] = useState(0); // skutečná výška okna v px
     const [touchDragPos, setTouchDragPos] = useState<{ x: number; y: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const sourceRef = useRef(source);
@@ -207,6 +208,14 @@ export default function SolitaireClient() {
         const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
         setIsMobile(mobile);
         setIsIOS(ios);
+        setWindowHeight(window.innerHeight);
+        // Zakázat pull-to-refresh na iOS
+        if (ios) {
+            document.documentElement.style.overscrollBehavior = 'none';
+            document.body.style.overscrollBehavior = 'none';
+        }
+        const onResize = () => setWindowHeight(window.innerHeight);
+        window.addEventListener('resize', onResize);
         const onChange = () => setIsFullscreen(!!document.fullscreenElement);
         window.addEventListener("resize", checkOrientation);
         window.addEventListener("orientationchange", checkOrientation);
@@ -216,6 +225,7 @@ export default function SolitaireClient() {
         setState(generateNewGame());
         return () => {
             window.removeEventListener("resize", checkOrientation);
+            window.removeEventListener("resize", onResize);
             window.removeEventListener("orientationchange", checkOrientation);
             screen.orientation?.removeEventListener("change", checkOrientation);
             document.removeEventListener("fullscreenchange", onChange);
@@ -475,21 +485,20 @@ export default function SolitaireClient() {
                         {state.tableau.map((col, ci) => {
                             let dynOverlapFaceUp = overlapFaceUp;
                             let dynOverlapFaceDown = overlapFaceDown;
-                            if (mobileFS && col.length > 1) {
-                                // Výchozí: karta 22vh, face-up viditelná část = 22-16 = 6vh, face-down = 22-19.5 = 2.5vh
-                                // Celková výška sloupce s výchozím overlapem:
-                                const cardVh = 22;
-                                const defaultUp = 16;
-                                const defaultDown = 19.5;
+                            if (mobileFS && col.length > 1 && windowHeight > 0) {
+                                // Použij skutečnou výšku okna v px – přesné na iOS
+                                // Karta je 22vh vysoká, header ~5vh, horní řada ~25vh, padding ~2vh
+                                const cardPx = windowHeight * 0.22;
+                                const defaultUpPx = windowHeight * 0.16;
+                                const defaultDownPx = windowHeight * 0.195;
+                                const availablePx = windowHeight * 0.63;
                                 const faceDownCount = col.filter((c, i) => i > 0 && !col[i-1].faceUp).length;
                                 const faceUpCount = (col.length - 1) - faceDownCount;
-                                const totalH = cardVh + faceUpCount * (cardVh - defaultUp) + faceDownCount * (cardVh - defaultDown);
-                                const availableVh = 63;
-                                if (totalH > availableVh) {
-                                    // Přidej extra překryv rovnoměrně na všechny mezery
-                                    const extra = (totalH - availableVh) / (col.length - 1);
-                                    dynOverlapFaceUp   = `-${defaultUp + extra}vh`;
-                                    dynOverlapFaceDown = `-${defaultDown + extra}vh`;
+                                const totalH = cardPx + faceUpCount * (cardPx - defaultUpPx) + faceDownCount * (cardPx - defaultDownPx);
+                                if (totalH > availablePx) {
+                                    const extra = (totalH - availablePx) / (col.length - 1);
+                                    dynOverlapFaceUp   = `-${defaultUpPx + extra}px`;
+                                    dynOverlapFaceDown = `-${defaultDownPx + extra}px`;
                                 }
                             }
                             return (
