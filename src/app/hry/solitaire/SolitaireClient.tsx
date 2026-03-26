@@ -348,7 +348,7 @@ export default function SolitaireClient() {
         >
             {/* ── Blocker – překryje vše když podmínky nejsou splněny ── */}
             {showBlocker && (
-                <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 text-center z-[999]">
+                <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 text-center z-[200]">
                     <div className="text-7xl mb-6" style={{ animation: "spin-y 1.5s ease-in-out infinite alternate" }}>🔄</div>
                     <style>{`@keyframes spin-y { from { transform: rotate(-30deg); } to { transform: rotate(30deg); } }`}</style>
                     <h1 className="text-white text-3xl font-black mb-3">PŘEVRAŤTE OBRAZOVKU</h1>
@@ -377,8 +377,8 @@ export default function SolitaireClient() {
                     showBlocker ? "invisible" :
                     effectiveFullscreen
                         ? mobileFS
-                            ? "w-screen fixed inset-0 p-1 bg-slate-300 overflow-hidden"
-                            : "w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center"
+                            ? "w-screen fixed inset-0 p-1 bg-slate-300 overflow-hidden z-[200]"
+                            : "w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center z-[200]"
                         : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"
                 }`}
                 style={effectiveFullscreen ? { height: '100svh' } : {}}
