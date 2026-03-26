@@ -143,7 +143,6 @@ export default function SolitaireClient() {
     const [cssFullscreen, setCssFullscreen] = useState(false); // pro iOS simulaci
     const [windowHeight, setWindowHeight] = useState(0); // skutečná výška okna v px
     const tableauRef = useRef<HTMLDivElement>(null);
-    const [tableauHeight, setTableauHeight] = useState(0);
     const [touchDragPos, setTouchDragPos] = useState<{ x: number; y: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const sourceRef = useRef(source);
@@ -260,13 +259,6 @@ export default function SolitaireClient() {
         setSource(null);
         setDraggedIds([]);
     }, []);
-
-    // ── Měř skutečnou výšku tableau divu ──
-    useEffect(() => {
-        if (!tableauRef.current) return;
-        const h = tableauRef.current.getBoundingClientRect().height;
-        if (h > 0) setTableauHeight(h);
-    });
 
     // ── Auto-complete: když jsou všechny karty otočené, automaticky přesuň na foundations ──
     useEffect(() => {
@@ -495,13 +487,15 @@ export default function SolitaireClient() {
                             let dynOverlapFaceUp = overlapFaceUp;
                             let dynOverlapFaceDown = overlapFaceDown;
                             if (mobileFS && col.length > 1) {
-                                // Použij skutečnou výšku tableau nebo odhad z windowHeight
-                                const availablePx = tableauHeight > 0 ? tableauHeight
-                                    : windowHeight > 0 ? windowHeight * 0.63 : 0;
-                                if (availablePx > 0) {
-                                    const cardPx = windowHeight > 0 ? windowHeight * 0.22 : availablePx * 0.35;
-                                    const defaultUpPx = cardPx * (16/22);
-                                    const defaultDownPx = cardPx * (19.5/22);
+                                // Změř výšku tableau přímo, nebo odhadni z window
+                                const wh = typeof window !== 'undefined' ? window.innerHeight : 0;
+                                const availablePx = (tableauRef.current?.getBoundingClientRect().height ?? 0) > 10
+                                    ? tableauRef.current!.getBoundingClientRect().height
+                                    : wh * 0.63;
+                                if (availablePx > 0 && wh > 0) {
+                                    const cardPx = wh * 0.22;
+                                    const defaultUpPx = wh * 0.16;
+                                    const defaultDownPx = wh * 0.195;
                                     const faceDownCount = col.filter((c, i) => i > 0 && !col[i-1].faceUp).length;
                                     const faceUpCount = (col.length - 1) - faceDownCount;
                                     const totalH = cardPx + faceUpCount * (cardPx - defaultUpPx) + faceDownCount * (cardPx - defaultDownPx);
