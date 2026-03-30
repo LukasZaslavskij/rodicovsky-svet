@@ -525,8 +525,11 @@ export default function SolitaireClient() {
                             let dynOverlapFaceDown = overlapFaceDown;
 
                             if (col.length > 1 && (mobileFS || mobilePortrait)) {
-                                // Používáme tableauHeight ze state (ResizeObserver) – vždy aktuální, bez náhodného chování
-                                const availablePx = tableauHeight > 10 ? tableauHeight : 0;
+                                // tableauHeight z ResizeObserveru – pokud ještě není k dispozici,
+                                // použijeme odhad z windowHeight (cca 63 % výšky po headeru a horní řadě)
+                                const availablePx = tableauHeight > 10
+                                    ? tableauHeight
+                                    : (mobileFS && windowHeight > 0 ? windowHeight * 0.63 : 0);
 
                                 if (mobileFS && availablePx > 0 && windowHeight > 0) {
                                     const wh = windowHeight;
