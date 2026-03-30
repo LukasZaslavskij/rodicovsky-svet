@@ -482,7 +482,7 @@ export default function SolitaireClient() {
                                 {state.stock.length > 0
                                     ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
                                     : <div className="rounded-xl border-4 border-dashed border-slate-400 flex items-center justify-center text-4xl text-slate-400"
-                                        style={{ aspectRatio: "2/3", height: cardH }}>↺</div>
+                                        style={{ aspectRatio: "2/3", height: cardH, userSelect: "none", pointerEvents: "none" }}></div>
                                 }
                             </div>
                             <div className="w-fit">
