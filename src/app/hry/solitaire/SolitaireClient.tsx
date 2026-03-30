@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useLayoutEffect } from "react";
 
 // ── Typy a pomocné funkce ────────────────────────────────────
 type Suit = "♠" | "♥" | "♦" | "♣";
@@ -66,12 +66,14 @@ function canPlaceOnTableau(card: Card, column: Card[]): boolean {
 }
 
 // ── Pomocné funkce pro velikost karet ─────────────────────
-function cardHeight(isFullscreen: boolean, mobileFS: boolean) {
+function cardHeight(isFullscreen: boolean, mobileFS: boolean, mobilePortrait: boolean) {
+    if (mobilePortrait) return "calc((100vw - 20px) / 7 * 1.5)";
     if (mobileFS) return "22vh";
     if (isFullscreen) return "16.5vh";
     return "150px";
 }
-function cardMinWidth(isFullscreen: boolean, mobileFS: boolean) {
+function cardMinWidth(isFullscreen: boolean, mobileFS: boolean, mobilePortrait: boolean) {
+    if (mobilePortrait) return "calc((100vw - 20px) / 7)";
     if (mobileFS) return "14.7vh";
     if (isFullscreen) return "11vh";
     return "100px";
@@ -79,22 +81,26 @@ function cardMinWidth(isFullscreen: boolean, mobileFS: boolean) {
 
 // ── Komponenta karty ───────────────────────────────────────
 function CardView({
-    card, isDragging, isSelected, onDragStart, onTouchStart, onClick, isFullscreen, mobileFS
+    card, isDragging, isSelected, onDragStart, onTouchStart, onClick,
+    isFullscreen, mobileFS, mobilePortrait
 }: {
     card: Card; isDragging?: boolean; isSelected?: boolean;
     onDragStart?: (e: React.DragEvent) => void;
     onTouchStart?: (e: React.TouchEvent) => void;
     onClick?: (e?: React.MouseEvent) => void;
-    isFullscreen: boolean; mobileFS: boolean;
+    isFullscreen: boolean; mobileFS: boolean; mobilePortrait: boolean;
 }) {
     const red = isRed(card.suit);
     const cardStyle: React.CSSProperties = {
         aspectRatio: "2/3",
-        height: cardHeight(isFullscreen, mobileFS),
+        height: cardHeight(isFullscreen, mobileFS, mobilePortrait),
         width: "auto",
-        minWidth: cardMinWidth(isFullscreen, mobileFS),
+        minWidth: cardMinWidth(isFullscreen, mobileFS, mobilePortrait),
     };
     const fs = isFullscreen || mobileFS;
+
+    const labelFontSize = mobilePortrait ? "2.8vw" : fs ? (mobileFS ? "3vh" : "2.4vh") : "1.2rem";
+    const centerFontSize = mobilePortrait ? "7.5vw" : fs ? (mobileFS ? "8.5vh" : "7vh") : "4.5rem";
 
     const baseClass = `relative rounded-xl border-2 transition-all overflow-hidden flex flex-col select-none
         ${isDragging ? "opacity-0 scale-105" : "opacity-100 shadow-lg"}
@@ -113,16 +119,16 @@ function CardView({
             {card.faceUp ? (
                 <div className="p-1.5 flex flex-col h-full justify-between items-start relative font-sans">
                     <div className="leading-none font-black flex flex-col items-center"
-                        style={{ fontSize: fs ? (mobileFS ? "3vh" : "2.4vh") : "1.2rem" }}>
+                        style={{ fontSize: labelFontSize }}>
                         <span>{label(card.value)}</span>
                         <span className="mt-0.5">{card.suit}</span>
                     </div>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.1]"
-                        style={{ fontSize: fs ? (mobileFS ? "8.5vh" : "7vh") : "4.5rem" }}>
+                        style={{ fontSize: centerFontSize }}>
                         {card.suit}
                     </div>
                     <div className="leading-none font-black self-end rotate-180 flex flex-col items-center"
-                        style={{ fontSize: fs ? (mobileFS ? "3vh" : "2.4vh") : "1.2rem" }}>
+                        style={{ fontSize: labelFontSize }}>
                         <span>{label(card.value)}</span>
                         <span className="mt-0.5">{card.suit}</span>
                     </div>
@@ -141,13 +147,30 @@ export default function SolitaireClient() {
     const [isMobile, setIsMobile] = useState(false);
     const [isIOS, setIsIOS] = useState(false);
     const [cssFullscreen, setCssFullscreen] = useState(false); // pro iOS simulaci
-    const [windowHeight, setWindowHeight] = useState(0); // skutečná výška okna v px
+    const [windowHeight, setWindowHeight] = useState(0);
+    const [windowWidth, setWindowWidth] = useState(0);
+    // Spolehlivá výška tableau oblast – aktualizovaná přes ResizeObserver, nikoli getBoundingClientRect() během renderu
+    const [tableauHeight, setTableauHeight] = useState(0);
     const tableauRef = useRef<HTMLDivElement>(null);
     const [touchDragPos, setTouchDragPos] = useState<{ x: number; y: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const sourceRef = useRef(source);
     sourceRef.current = source;
     const lastClickRef = useRef<{ id: string; time: number } | null>(null);
+
+    // ── ResizeObserver pro tableauRef – OPRAVA iOS fullscreen skálování ──
+    // Používáme useLayoutEffect aby se height aktualizovala synchronně po každém přepočítání layoutu,
+    // bez závislosti na nepředvídatelném getBoundingClientRect() volání během renderu.
+    useLayoutEffect(() => {
+        const el = tableauRef.current;
+        if (!el) return;
+        const ro = new ResizeObserver(entries => {
+            const h = entries[0]?.contentRect.height ?? 0;
+            if (h > 0) setTableauHeight(h);
+        });
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
 
     const autoMoveToFoundation = useCallback((card: Card, from: "waste" | "tableau", colIdx?: number) => {
         setState(prev => {
@@ -172,7 +195,6 @@ export default function SolitaireClient() {
     }, []);
 
     const checkOrientation = useCallback(() => {
-        // Použij screen.orientation pokud je dostupné, jinak window rozměry
         const landscape = screen.orientation
             ? screen.orientation.angle === 90 || screen.orientation.angle === 270
             : window.innerWidth > window.innerHeight;
@@ -180,7 +202,6 @@ export default function SolitaireClient() {
     }, []);
 
     const toggleFullscreen = useCallback(() => {
-        // iOS Safari nepodporuje fullscreen API – simulujeme přes CSS
         if (isIOS) {
             setCssFullscreen(prev => !prev);
             return;
@@ -210,14 +231,17 @@ export default function SolitaireClient() {
         setIsMobile(mobile);
         setIsIOS(ios);
         setWindowHeight(window.innerHeight);
-        // Zakázat pull-to-refresh na iOS
+        setWindowWidth(window.innerWidth);
         if (ios) {
             document.documentElement.style.overscrollBehavior = 'none';
             document.body.style.overscrollBehavior = 'none';
         }
-        const onResize = () => setWindowHeight(window.innerHeight);
-        window.addEventListener('resize', onResize);
+        const onResize = () => {
+            setWindowHeight(window.innerHeight);
+            setWindowWidth(window.innerWidth);
+        };
         const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+        window.addEventListener("resize", onResize);
         window.addEventListener("resize", checkOrientation);
         window.addEventListener("orientationchange", checkOrientation);
         screen.orientation?.addEventListener("change", checkOrientation);
@@ -225,8 +249,8 @@ export default function SolitaireClient() {
         checkOrientation();
         setState(generateNewGame());
         return () => {
-            window.removeEventListener("resize", checkOrientation);
             window.removeEventListener("resize", onResize);
+            window.removeEventListener("resize", checkOrientation);
             window.removeEventListener("orientationchange", checkOrientation);
             screen.orientation?.removeEventListener("change", checkOrientation);
             document.removeEventListener("fullscreenchange", onChange);
@@ -260,7 +284,7 @@ export default function SolitaireClient() {
         setDraggedIds([]);
     }, []);
 
-    // ── Auto-complete: když jsou všechny karty otočené, automaticky přesuň na foundations ──
+    // ── Auto-complete ──
     useEffect(() => {
         if (!state) return;
         const allFaceUp = state.tableau.every(col => col.every(c => c.faceUp))
@@ -309,7 +333,6 @@ export default function SolitaireClient() {
         }
         if (!cards[0]?.faceUp) return;
 
-        // Double-click / double-tap – automaticky přesuň na foundation
         const now = Date.now();
         const cardId = cards[0].id;
         if (lastClickRef.current?.id === cardId && now - lastClickRef.current.time < 400) {
@@ -323,7 +346,6 @@ export default function SolitaireClient() {
         setDraggedIds(cards.map(c => c.id));
     };
 
-    // Touch konec – funguje pro celý kontejner, najde data-target pod prstem
     const handleTouchEnd = useCallback((e: React.TouchEvent) => {
         setTouchDragPos(null);
         if (!sourceRef.current) return;
@@ -342,47 +364,50 @@ export default function SolitaireClient() {
 
     if (!state) return null;
 
-    // Na iOS použijeme cssFullscreen místo skutečného fullscreen API
     const effectiveFullscreen = isIOS ? cssFullscreen : isFullscreen;
-    const showBlocker = isMobile && (!isLandscape || !effectiveFullscreen);
+
+    // mobileFS = mobile + fullscreen + landscape → klasický landscape fullscreen mód
     const mobileFS = isMobile && effectiveFullscreen && isLandscape;
-    const cardH = cardHeight(effectiveFullscreen, mobileFS);
-    const cardW = cardMinWidth(effectiveFullscreen, mobileFS);
-    const overlapFaceUp   = mobileFS ? "-16vh"   : effectiveFullscreen ? "-12vh"   : "-105px";
-    const overlapFaceDown = mobileFS ? "-19.5vh" : effectiveFullscreen ? "-14.5vh" : "-120px";
+
+    // showBlocker = mobile + fullscreen + portrait → zobraz „otoč telefon" překrytí
+    const showBlocker = isMobile && effectiveFullscreen && !isLandscape;
+
+    // mobilePortrait = mobile + portrait + není fullscreen → hra na výšku (malé karty)
+    const mobilePortrait = isMobile && !isLandscape && !effectiveFullscreen;
+
+    const cardH = cardHeight(effectiveFullscreen, mobileFS, mobilePortrait);
+    const cardW = cardMinWidth(effectiveFullscreen, mobileFS, mobilePortrait);
+
+    // Výchozí overlapy – pro portrait počítáme v px z aktuální šířky okna
+    const portraitCardHeightPx = windowWidth > 0 ? (windowWidth - 20) / 7 * 1.5 : 75;
+    const overlapFaceUp   = mobilePortrait ? `-${(portraitCardHeightPx * 0.70).toFixed(1)}px`
+                          : mobileFS       ? "-16vh"
+                          : effectiveFullscreen ? "-12vh"
+                          : "-105px";
+    const overlapFaceDown = mobilePortrait ? `-${(portraitCardHeightPx * 0.85).toFixed(1)}px`
+                          : mobileFS       ? "-19.5vh"
+                          : effectiveFullscreen ? "-14.5vh"
+                          : "-120px";
 
     return (
-        // Jeden stálý wrapper s ref – nikdy se neodmountuje, takže fullscreen zůstane
-        <div
-            ref={containerRef}
-            className="contents"
-        >
-            {/* ── Blocker – překryje vše když podmínky nejsou splněny ── */}
+        <div ref={containerRef} className="contents">
+            {/* ── Blocker – zobrazí se jen při fullscreen + portrait ── */}
             {showBlocker && (
                 <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 text-center z-[200]">
                     <div className="text-7xl mb-6" style={{ animation: "spin-y 1.5s ease-in-out infinite alternate" }}>🔄</div>
                     <style>{`@keyframes spin-y { from { transform: rotate(-30deg); } to { transform: rotate(30deg); } }`}</style>
-                    <h1 className="text-white text-3xl font-black mb-3">PŘEVRAŤTE OBRAZOVKU</h1>
-                    <p className="text-slate-400 mb-2 max-w-xs text-sm">1. Klikněte na Full Screen níže.</p>
-                    <p className="text-slate-500 mb-8 max-w-xs text-xs">2. Pak otočte telefon na šířku.</p>
-                    <div className="flex flex-col gap-4 w-full max-w-xs">
-                        <button
-                            onClick={toggleFullscreen}
-                            className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xl active:scale-95 transition-transform shadow-lg shadow-blue-900"
-                        >
-                            ⛶ ZAPNOUT FULL SCREEN
-                        </button>
-                        <button
-                            onClick={() => window.history.back()}
-                            className="bg-slate-800 text-slate-300 px-8 py-3 rounded-2xl font-bold text-base active:scale-95 transition-transform"
-                        >
-                            ← ZPĚT
-                        </button>
-                    </div>
+                    <h1 className="text-white text-3xl font-black mb-3">OTOČTE TELEFON</h1>
+                    <p className="text-slate-400 mb-8 max-w-xs text-sm">Pro full screen režim otočte telefon na šířku.</p>
+                    <button
+                        onClick={toggleFullscreen}
+                        className="bg-slate-800 text-slate-300 px-8 py-3 rounded-2xl font-bold text-base active:scale-95 transition-transform"
+                    >
+                        ✕ Zrušit full screen
+                    </button>
                 </div>
             )}
 
-            {/* ── Hra – vždy mountovaná, schovaná za blockerem pokud je blocker aktivní ── */}
+            {/* ── Hra – vždy mountovaná ── */}
             <div
                 className={`flex flex-col transition-all duration-500 ${
                     showBlocker ? "invisible" :
@@ -390,7 +415,9 @@ export default function SolitaireClient() {
                         ? mobileFS
                             ? "w-screen fixed inset-0 p-1 bg-slate-300 overflow-hidden z-[200]"
                             : "w-screen fixed inset-0 p-2 sm:p-4 bg-slate-300 overflow-hidden items-center justify-center z-[200]"
-                        : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"
+                        : mobilePortrait
+                            ? "min-h-screen w-full p-1.5 bg-slate-200"
+                            : "min-h-screen max-w-6xl mx-auto p-6 shadow-2xl my-4 rounded-3xl bg-slate-200"
                 }`}
                 style={effectiveFullscreen ? { height: '100svh' } : {}}
                 onTouchEnd={handleTouchEnd}
@@ -403,49 +430,57 @@ export default function SolitaireClient() {
                     <div className={`flex items-center justify-between border-b px-1 ${
                         effectiveFullscreen
                             ? mobileFS ? "border-slate-400 mb-2 py-0.5" : "border-slate-400 mb-4 py-1"
+                            : mobilePortrait ? "border-slate-300 mb-1.5 pb-1.5"
                             : "border-slate-300 mb-8 pb-4"
                     }`}>
                         <span className={`font-black tracking-tighter text-slate-800 ${
-                            effectiveFullscreen ? "hidden sm:block text-2xl" : "text-2xl"
+                            effectiveFullscreen ? "hidden sm:block text-2xl"
+                            : mobilePortrait ? "text-base"
+                            : "text-2xl"
                         }`}>SOLITAIRE</span>
 
-                        <div className={`flex items-center ${mobileFS ? "gap-2" : "gap-4"}`}>
+                        <div className={`flex items-center ${(mobileFS || mobilePortrait) ? "gap-2" : "gap-4"}`}>
                             <div className="flex flex-row items-center gap-1">
-                                <span className={`uppercase font-bold text-slate-500 ${mobileFS ? "text-[8px]" : "text-[10px]"}`}>Tahy</span>
-                                <span className={`font-black text-slate-800 leading-none ${mobileFS ? "text-base" : "text-xl sm:text-2xl"}`}>
+                                <span className={`uppercase font-bold text-slate-500 ${(mobileFS || mobilePortrait) ? "text-[8px]" : "text-[10px]"}`}>Tahy</span>
+                                <span className={`font-black text-slate-800 leading-none ${(mobileFS || mobilePortrait) ? "text-base" : "text-xl sm:text-2xl"}`}>
                                     {state.moves}
                                 </span>
                             </div>
-                            <div className={`flex ${mobileFS ? "gap-2" : "gap-2"}`}>
+                            <div className="flex gap-2">
                                 <button
                                     onClick={toggleFullscreen}
                                     className={`bg-white border-2 border-slate-300 rounded-xl font-bold shadow-sm active:bg-slate-50 ${
-                                        mobileFS ? "px-4 py-1.5 text-sm" : "px-3 py-1 text-[10px] sm:text-sm"
+                                        (mobileFS || mobilePortrait) ? "px-3 py-1.5 text-sm" : "px-3 py-1 text-[10px] sm:text-sm"
                                     }`}
                                 >
-                                    {mobileFS ? "⛶" : "Full Screen"}
+                                    {(mobileFS || mobilePortrait) ? "⛶" : "Full Screen"}
                                 </button>
                                 <button
                                     onClick={() => setState(generateNewGame())}
                                     className={`bg-white border-2 border-slate-300 rounded-xl font-bold text-red-500 active:bg-slate-50 ${
-                                        mobileFS ? "px-4 py-1.5 text-sm" : "px-3 py-1 text-[10px] sm:text-sm"
+                                        (mobileFS || mobilePortrait) ? "px-3 py-1.5 text-sm" : "px-3 py-1 text-[10px] sm:text-sm"
                                     }`}
                                 >
-                                    {mobileFS ? "↺" : "Restart"}
+                                    {(mobileFS || mobilePortrait) ? "↺" : "Restart"}
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     {/* ── Horní řada ── */}
-                    <div className={`grid grid-cols-7 mb-4 ${effectiveFullscreen ? "gap-2" : "gap-4"}`}>
+                    <div className={`grid grid-cols-7 ${
+                        mobileFS ? "mb-3 gap-2"
+                        : mobilePortrait ? "mb-1.5 gap-1"
+                        : effectiveFullscreen ? "mb-4 gap-2"
+                        : "mb-4 gap-4"
+                    }`}>
                         <div className="flex gap-1 sm:gap-2 col-span-2">
                             <div className="w-fit"
                                 onClick={(e) => { if (!('ontouchstart' in window)) handleActionStart("stock", []); }}
                                 onTouchEnd={(e) => { e.stopPropagation(); handleActionStart("stock", []); }}
                                 style={{ touchAction: "none" }}>
                                 {state.stock.length > 0
-                                    ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} />
+                                    ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
                                     : <div className="rounded-xl border-4 border-dashed border-slate-400 flex items-center justify-center text-4xl text-slate-400"
                                         style={{ aspectRatio: "2/3", height: cardH }}>↺</div>
                                 }
@@ -458,7 +493,7 @@ export default function SolitaireClient() {
                                         onClick={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
                                         onDragStart={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
                                         onTouchStart={() => handleActionStart("waste", [state.waste[state.waste.length - 1]])}
-                                        isFullscreen={effectiveFullscreen} mobileFS={mobileFS}
+                                        isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait}
                                     />
                                 )}
                             </div>
@@ -472,7 +507,7 @@ export default function SolitaireClient() {
                                     onDragOver={e => e.preventDefault()}
                                     onDrop={() => executeMove("foundation", fi)}>
                                     {f.length > 0
-                                        ? <CardView card={f[f.length - 1]} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} />
+                                        ? <CardView card={f[f.length - 1]} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
                                         : <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-xl sm:text-3xl font-black shadow-inner"
                                             style={{ aspectRatio: "2/3", height: cardH }}>{SUITS[fi]}</div>
                                     }
@@ -482,63 +517,78 @@ export default function SolitaireClient() {
                     </div>
 
                     {/* ── Tableau ── */}
-                    <div ref={tableauRef} className={`grid grid-cols-7 flex-grow items-start ${effectiveFullscreen ? "gap-2" : "gap-4"}`}>
+                    <div ref={tableauRef} className={`grid grid-cols-7 flex-grow items-start ${
+                        mobilePortrait ? "gap-1" : effectiveFullscreen ? "gap-2" : "gap-4"
+                    }`}>
                         {state.tableau.map((col, ci) => {
                             let dynOverlapFaceUp = overlapFaceUp;
                             let dynOverlapFaceDown = overlapFaceDown;
-                            if (mobileFS && col.length > 1) {
-                                // Změř výšku tableau přímo, nebo odhadni z window
-                                const wh = typeof window !== 'undefined' ? window.innerHeight : 0;
-                                const availablePx = (tableauRef.current?.getBoundingClientRect().height ?? 0) > 10
-                                    ? tableauRef.current!.getBoundingClientRect().height
-                                    : wh * 0.63;
-                                if (availablePx > 0 && wh > 0) {
+
+                            if (col.length > 1 && (mobileFS || mobilePortrait)) {
+                                // Používáme tableauHeight ze state (ResizeObserver) – vždy aktuální, bez náhodného chování
+                                const availablePx = tableauHeight > 10 ? tableauHeight : 0;
+
+                                if (mobileFS && availablePx > 0 && windowHeight > 0) {
+                                    const wh = windowHeight;
                                     const cardPx = wh * 0.22;
                                     const defaultUpPx = wh * 0.16;
                                     const defaultDownPx = wh * 0.195;
-                                    const faceDownCount = col.filter((c, i) => i > 0 && !col[i-1].faceUp).length;
+                                    const faceDownCount = col.filter((c, i) => i > 0 && !col[i - 1].faceUp).length;
                                     const faceUpCount = (col.length - 1) - faceDownCount;
                                     const totalH = cardPx + faceUpCount * (cardPx - defaultUpPx) + faceDownCount * (cardPx - defaultDownPx);
                                     if (totalH > availablePx) {
                                         const extra = (totalH - availablePx) / (col.length - 1);
-                                        dynOverlapFaceUp   = `-${defaultUpPx + extra}px`;
-                                        dynOverlapFaceDown = `-${defaultDownPx + extra}px`;
+                                        dynOverlapFaceUp   = `-${(defaultUpPx + extra).toFixed(1)}px`;
+                                        dynOverlapFaceDown = `-${(defaultDownPx + extra).toFixed(1)}px`;
+                                    }
+                                } else if (mobilePortrait && availablePx > 0 && windowWidth > 0) {
+                                    const cardPx = (windowWidth - 20) / 7 * 1.5;
+                                    const defaultUpPx = cardPx * 0.70;
+                                    const defaultDownPx = cardPx * 0.85;
+                                    const faceDownCount = col.filter((c, i) => i > 0 && !col[i - 1].faceUp).length;
+                                    const faceUpCount = (col.length - 1) - faceDownCount;
+                                    const totalH = cardPx + faceUpCount * (cardPx - defaultUpPx) + faceDownCount * (cardPx - defaultDownPx);
+                                    if (totalH > availablePx) {
+                                        const extra = (totalH - availablePx) / (col.length - 1);
+                                        dynOverlapFaceUp   = `-${(defaultUpPx + extra).toFixed(1)}px`;
+                                        dynOverlapFaceDown = `-${(defaultDownPx + extra).toFixed(1)}px`;
                                     }
                                 }
                             }
+
                             return (
-                            <div key={ci}
-                                className="flex flex-col items-center relative h-full"
-                                data-target data-target-type="tableau" data-target-idx={ci}
-                                onClick={() => source && source.colIdx !== ci && executeMove("tableau", ci)}
-                                onDragOver={e => e.preventDefault()}
-                                onDrop={() => executeMove("tableau", ci)}>
-                                {col.length === 0 && (
-                                    <div className="rounded-xl border-2 border-dashed border-slate-400 opacity-20"
-                                        style={{ aspectRatio: "2/3", width: cardW }} />
-                                )}
-                                {col.map((card, cardIdx) => {
-                                    const overlap = cardIdx === 0 ? "0"
-                                        : (col[cardIdx - 1].faceUp ? dynOverlapFaceUp : dynOverlapFaceDown);
-                                    return (
-                                        <div key={card.id} style={{ marginTop: overlap, zIndex: cardIdx, position: "relative" }}>
-                                            <CardView
-                                                card={card}
-                                                isSelected={draggedIds.includes(card.id)}
-                                                isDragging={draggedIds.includes(card.id) && !!touchDragPos}
-                                                onDragStart={() => handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx)}
-                                                onTouchStart={() => handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx)}
-                                                onClick={(e) => {
-                                                    // @ts-ignore
-                                                    e?.stopPropagation();
-                                                    handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx);
-                                                }}
-                                                isFullscreen={effectiveFullscreen} mobileFS={mobileFS}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                                <div key={ci}
+                                    className="flex flex-col items-center relative h-full"
+                                    data-target data-target-type="tableau" data-target-idx={ci}
+                                    onClick={() => source && source.colIdx !== ci && executeMove("tableau", ci)}
+                                    onDragOver={e => e.preventDefault()}
+                                    onDrop={() => executeMove("tableau", ci)}>
+                                    {col.length === 0 && (
+                                        <div className="rounded-xl border-2 border-dashed border-slate-400 opacity-20"
+                                            style={{ aspectRatio: "2/3", width: cardW }} />
+                                    )}
+                                    {col.map((card, cardIdx) => {
+                                        const overlap = cardIdx === 0 ? "0"
+                                            : (col[cardIdx - 1].faceUp ? dynOverlapFaceUp : dynOverlapFaceDown);
+                                        return (
+                                            <div key={card.id} style={{ marginTop: overlap, zIndex: cardIdx, position: "relative" }}>
+                                                <CardView
+                                                    card={card}
+                                                    isSelected={draggedIds.includes(card.id)}
+                                                    isDragging={draggedIds.includes(card.id) && !!touchDragPos}
+                                                    onDragStart={() => handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx)}
+                                                    onTouchStart={() => handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx)}
+                                                    onClick={(e) => {
+                                                        // @ts-ignore
+                                                        e?.stopPropagation();
+                                                        handleActionStart("tableau", col.slice(cardIdx), ci, cardIdx);
+                                                    }}
+                                                    isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             );
                         })}
                     </div>
@@ -557,7 +607,7 @@ export default function SolitaireClient() {
                     }}>
                         {source.cards.map((card, i) => (
                             <div key={card.id} style={{ marginTop: i === 0 ? 0 : overlapFaceUp, position: "relative", zIndex: i }}>
-                                <CardView card={card} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} />
+                                <CardView card={card} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
                             </div>
                         ))}
                     </div>
