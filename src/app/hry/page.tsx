@@ -24,6 +24,14 @@ const HRY = [
     color: "from-emerald-50 to-teal-100",
     tag: "Karty",
   },
+  {
+    slug: "freecell",
+    title: "FreeCell",
+    description: "Strategická karetní hra s volnými buňkami. Přesuň všechny karty na hromádky od esa po krále.",
+    emoji: "🂡",
+    color: "from-blue-50 to-sky-100",
+    tag: "Karty",
+  },
 ];
 
 export default function HryPage() {
