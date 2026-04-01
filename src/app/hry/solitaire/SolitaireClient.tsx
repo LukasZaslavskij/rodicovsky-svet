@@ -389,8 +389,8 @@ export default function SolitaireClient() {
     // mobilePortrait = mobile + portrait + není fullscreen → hra na výšku (malé karty)
     const mobilePortrait = isMobile && !isLandscape && !effectiveFullscreen;
 
-    const cardH = cardHeight(effectiveFullscreen, mobileFS, mobilePortrait, mobileFS ? windowHeight : 0);
-    const cardW = cardMinWidth(effectiveFullscreen, mobileFS, mobilePortrait, mobileFS ? windowHeight : 0);
+    const cardH = cardHeight(effectiveFullscreen, mobileFS, mobilePortrait);
+    const cardW = cardMinWidth(effectiveFullscreen, mobileFS, mobilePortrait);
 
     // Výchozí overlapy – pro portrait počítáme v px z aktuální šířky okna
     const portraitCardHeightPx = windowWidth > 0 ? (windowWidth - 20) / 7 * 1.5 : 75;
@@ -494,7 +494,7 @@ export default function SolitaireClient() {
                                 onTouchEnd={(e) => { e.stopPropagation(); handleActionStart("stock", []); }}
                                 style={{ touchAction: "none" }}>
                                 {state.stock.length > 0
-                                    ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} windowHeight={windowHeight} />
+                                    ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
                                     : <div className="rounded-xl border-4 border-dashed border-slate-400 flex items-center justify-center text-4xl text-slate-400"
                                         style={{ aspectRatio: "2/3", height: cardH, userSelect: "none", pointerEvents: "none" }}></div>
                                 }
@@ -521,7 +521,7 @@ export default function SolitaireClient() {
                                     onDragOver={e => e.preventDefault()}
                                     onDrop={() => executeMove("foundation", fi)}>
                                     {f.length > 0
-                                        ? <CardView card={f[f.length - 1]} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} windowHeight={windowHeight} />
+                                        ? <CardView card={f[f.length - 1]} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
                                         : <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-xl sm:text-3xl font-black shadow-inner"
                                             style={{ aspectRatio: "2/3", height: cardH }}>{SUITS[fi]}</div>
                                     }
@@ -626,7 +626,7 @@ export default function SolitaireClient() {
                     }}>
                         {source.cards.map((card, i) => (
                             <div key={card.id} style={{ marginTop: i === 0 ? 0 : overlapFaceUp, position: "relative", zIndex: i }}>
-                                <CardView card={card} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} windowHeight={windowHeight} />
+                                <CardView card={card} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
                             </div>
                         ))}
                     </div>
