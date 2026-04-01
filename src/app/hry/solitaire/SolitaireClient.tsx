@@ -172,6 +172,20 @@ export default function SolitaireClient() {
         return () => ro.disconnect();
     }, []);
 
+    // ── iOS fix: po přepnutí cssFullscreen počkej 2 framy a přečti výšku ručně ──
+    // Na iOS Safari ResizeObserver po CSS přepnutí layoutu nevolá spolehlivě.
+    useEffect(() => {
+        if (!cssFullscreen) return;
+        let raf1: number, raf2: number;
+        raf1 = requestAnimationFrame(() => {
+            raf2 = requestAnimationFrame(() => {
+                const h = tableauRef.current?.getBoundingClientRect().height ?? 0;
+                if (h > 0) setTableauHeight(h);
+            });
+        });
+        return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
+    }, [cssFullscreen]);
+
     const autoMoveToFoundation = useCallback((card: Card, from: "waste" | "tableau", colIdx?: number) => {
         setState(prev => {
             if (!prev) return null;
@@ -375,8 +389,8 @@ export default function SolitaireClient() {
     // mobilePortrait = mobile + portrait + není fullscreen → hra na výšku (malé karty)
     const mobilePortrait = isMobile && !isLandscape && !effectiveFullscreen;
 
-    const cardH = cardHeight(effectiveFullscreen, mobileFS, mobilePortrait);
-    const cardW = cardMinWidth(effectiveFullscreen, mobileFS, mobilePortrait);
+    const cardH = cardHeight(effectiveFullscreen, mobileFS, mobilePortrait, mobileFS ? windowHeight : 0);
+    const cardW = cardMinWidth(effectiveFullscreen, mobileFS, mobilePortrait, mobileFS ? windowHeight : 0);
 
     // Výchozí overlapy – pro portrait počítáme v px z aktuální šířky okna
     const portraitCardHeightPx = windowWidth > 0 ? (windowWidth - 20) / 7 * 1.5 : 75;
@@ -480,7 +494,7 @@ export default function SolitaireClient() {
                                 onTouchEnd={(e) => { e.stopPropagation(); handleActionStart("stock", []); }}
                                 style={{ touchAction: "none" }}>
                                 {state.stock.length > 0
-                                    ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
+                                    ? <CardView card={{ suit: "♠", value: 1, faceUp: false, id: "back" }} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} windowHeight={windowHeight} />
                                     : <div className="rounded-xl border-4 border-dashed border-slate-400 flex items-center justify-center text-4xl text-slate-400"
                                         style={{ aspectRatio: "2/3", height: cardH, userSelect: "none", pointerEvents: "none" }}></div>
                                 }
@@ -507,7 +521,7 @@ export default function SolitaireClient() {
                                     onDragOver={e => e.preventDefault()}
                                     onDrop={() => executeMove("foundation", fi)}>
                                     {f.length > 0
-                                        ? <CardView card={f[f.length - 1]} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
+                                        ? <CardView card={f[f.length - 1]} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} windowHeight={windowHeight} />
                                         : <div className="rounded-xl border-4 border-dashed border-slate-400 text-slate-400 bg-slate-100/50 flex items-center justify-center text-xl sm:text-3xl font-black shadow-inner"
                                             style={{ aspectRatio: "2/3", height: cardH }}>{SUITS[fi]}</div>
                                     }
@@ -527,9 +541,11 @@ export default function SolitaireClient() {
                             if (col.length > 1 && (mobileFS || mobilePortrait)) {
                                 // tableauHeight z ResizeObserveru – pokud ještě není k dispozici,
                                 // použijeme odhad z windowHeight (cca 63 % výšky po headeru a horní řadě)
+                                // iOS: nikdy nepoužívej windowHeight jako fallback – je nespolehlivý kvůli
+                                // dynamické liště Safari. Raději počkej na přesnou hodnotu z RAF/ResizeObserver.
                                 const availablePx = tableauHeight > 10
                                     ? tableauHeight
-                                    : (mobileFS && windowHeight > 0 ? windowHeight * 0.63 : 0);
+                                    : (mobileFS && !isIOS && windowHeight > 0 ? windowHeight * 0.63 : 0);
 
                                 if (mobileFS && availablePx > 0 && windowHeight > 0) {
                                     const wh = windowHeight;
@@ -610,7 +626,7 @@ export default function SolitaireClient() {
                     }}>
                         {source.cards.map((card, i) => (
                             <div key={card.id} style={{ marginTop: i === 0 ? 0 : overlapFaceUp, position: "relative", zIndex: i }}>
-                                <CardView card={card} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} />
+                                <CardView card={card} isFullscreen={effectiveFullscreen} mobileFS={mobileFS} mobilePortrait={mobilePortrait} windowHeight={windowHeight} />
                             </div>
                         ))}
                     </div>
