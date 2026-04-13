@@ -14,17 +14,19 @@ export default function HomePage() {
         {/* ── Hlavní obsah ── */}
         <div className="flex-1 min-w-0">
 
-          {/* Kvíz promo banner */}
-          <div className="mb-8">
-            <a href="/kviz/jaky-jsi-rodic" className="group block">
-              <div className="rounded-2xl bg-gradient-to-r from-[var(--rose)] to-pink-100 border border-pink-200 p-5 flex items-center gap-5 hover:border-[var(--accent)] transition-colors">
-                <div className="text-5xl flex-shrink-0">🎯</div>
+          {/* Hry promo banner - nyní přes celou šířku */}
+          <div className="mb-10">
+            <a href="/hry" className="group block h-full">
+              <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-500 border border-indigo-400 p-8 flex items-center gap-8 shadow-lg shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-1 transition-all text-white">
+                <div className="text-6xl flex-shrink-0 group-hover:rotate-12 transition-transform duration-300">🎮</div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--accent)] mb-0.5">Nový kvíz</p>
-                  <p className="font-serif font-bold text-lg text-[var(--ink)] group-hover:text-[var(--accent)] transition-colors">Jaký jsi typ rodiče?</p>
-                  <p className="text-sm text-[var(--muted)] mt-0.5">10 otázek · 3 minuty · zjisti svůj rodičovský styl</p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-indigo-100 mb-1">Zábava a relax</p>
+                  <p className="font-serif font-bold text-2xl group-hover:text-indigo-100 transition-colors leading-tight">Herní koutek</p>
+                  <p className="text-base text-white/80 mt-2 italic">Solitaire, Bubble Shooter a další hry pro chvíle pohody</p>
                 </div>
-                <span className="text-[var(--accent)] font-bold text-sm flex-shrink-0 group-hover:translate-x-1 transition-transform">→</span>
+                <span className="bg-white/20 p-3 rounded-full group-hover:bg-white/30 transition-colors hidden sm:block">
+                  <span className="block translate-x-0.5 group-hover:translate-x-1 transition-transform text-xl">→</span>
+                </span>
               </div>
             </a>
           </div>

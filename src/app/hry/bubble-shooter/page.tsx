@@ -19,9 +19,11 @@ export default function BubbleShooterPage() {
           <span className="mx-2">›</span>
           <span>Bubble Shooter</span>
         </nav>
-        <div className="text-center mb-6">
-          <h1 className="font-serif text-3xl font-bold text-[var(--ink)] mb-2">🫧 Bubble Shooter</h1>
-          <p className="text-[var(--muted)] text-sm">Střílej bubliny a spoj 3 stejné barvy. Čím výše se dostaneš, tím více bodů!</p>
+        <div className="text-center mb-10">
+          <h1 className="font-serif text-4xl font-bold text-[var(--ink)] mb-4">🫧 Bubble Shooter</h1>
+          <p className="text-[var(--muted)] text-lg leading-relaxed">
+            Odpočiňte si u oblíbené hry, která vyžaduje trochu postřehu i strategie. Stačí mířit a střílet barevné kuličky. Zvládnete vyčistit celé hrací pole?
+          </p>
         </div>
       </div>
 

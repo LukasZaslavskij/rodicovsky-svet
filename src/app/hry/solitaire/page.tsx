@@ -19,9 +19,11 @@ export default function SolitairePage() {
           <span className="mx-2">›</span>
           <span>Solitaire</span>
         </nav>
-        <div className="text-center mb-6">
-          <h1 className="font-serif text-3xl font-bold text-[var(--ink)] mb-2">🃏 Solitaire</h1>
-          <p className="text-[var(--muted)] text-sm">Přesuň všechny karty na 4 hromádky — od esa po krále, každá barva zvlášť.</p>
+        <div className="text-center mb-10">
+          <h1 className="font-serif text-4xl font-bold text-[var(--ink)] mb-4">🃏 Online Solitaire (Klondike)</h1>
+          <p className="text-[var(--muted)] text-lg max-w-2xl mx-auto leading-relaxed">
+            Klasická karetní hra, kterou všichni známe. Dokonalý způsob, jak si na chvíli oddechnout od dětí a domácích povinností. Tato verze je plně responzivní a funguje skvěle na tabletu i mobilu.
+          </p>
         </div>
       </div>
 

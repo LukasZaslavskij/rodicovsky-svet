@@ -18,19 +18,34 @@ export default function Sidebar({ currentSlug }: { currentSlug?: string }) {
   return (
     <aside className="space-y-6">
 
-      {/* ── Promo box horní (sem později AdSense 300×250) ── */}
-      <div className="rounded-xl overflow-hidden relative">
-        {/* ADS: Nahraď img + div za Google AdSense tag až budeš schválený */}
-        <img
-          src="https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=300&h=250&fit=crop&auto=format&q=80"
-          alt="Rodič s dítětem"
-          className="w-full h-[250px] object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-4">
-          <p className="text-white font-serif font-bold text-lg leading-tight">Každý příběh stojí za přečtení</p>
-          <p className="text-white/70 text-xs mt-1">Rodičovský svět</p>
+      {/* ── Vylepšený odkaz na kvíz (Jaký jsi rodič) ── */}
+      <Link href="/kviz/jaky-jsi-rodic" className="group block overflow-hidden rounded-2xl relative aspect-[300/320] shadow-md hover:shadow-xl transition-shadow duration-300">
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--rose)] to-pink-100 flex items-center justify-center">
+          <span className="text-8xl group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">🎯</span>
         </div>
-      </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end p-6">
+          <div className="flex gap-2 mb-3">
+            <div className="bg-[var(--accent)] text-white text-[10px] font-bold uppercase tracking-[0.2em] px-2 py-0.5 rounded shadow-sm">
+              Kvíz
+            </div>
+            <div className="bg-white/20 text-white text-[10px] font-bold uppercase tracking-[0.2em] px-2 py-0.5 rounded backdrop-blur-sm">
+              3 minuty
+            </div>
+          </div>
+          <h3 className="text-white font-serif font-bold text-2xl leading-tight mb-2 group-hover:text-[var(--rose)] transition-colors">
+            Jaký jsi typ rodiče?
+          </h3>
+          <p className="text-white/70 text-xs mb-4 line-clamp-2 italic leading-relaxed">
+            Zjisti, jaké jsou tvé silné stránky a v čem vynikáš při výchově svých dětí.
+          </p>
+          <div className="flex items-center justify-between">
+            <span className="text-white font-semibold text-sm">Spustit kvíz</span>
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-[var(--rose)] group-hover:text-[var(--accent)] transition-all">
+              <span className="font-bold">→</span>
+            </div>
+          </div>
+        </div>
+      </Link>
 
       {/* ── Kategorie ── */}
       <div className="bg-white border border-[var(--border)] rounded-xl p-5">

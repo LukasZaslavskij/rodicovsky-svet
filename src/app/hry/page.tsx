@@ -43,11 +43,14 @@ export default function HryPage() {
         <span>Hry</span>
       </nav>
 
-      <div className="mb-8">
-        <h1 className="font-serif text-4xl font-bold text-[var(--ink)] mb-3">Hry 🎮</h1>
-        <p className="text-[var(--muted)] text-lg leading-relaxed max-w-2xl">
-          Krátké hry na odreagování — pro rodiče i děti.
+      <div className="mb-12">
+        <h1 className="font-serif text-4xl font-bold text-[var(--ink)] mb-4">Hry pro rodiče a děti 🎮</h1>
+        <p className="text-[var(--muted)] text-lg leading-relaxed max-w-3xl">
+          Vítejte v našem herním koutku! Připravili jsme pro vás výběr klasických her, které vám pomohou si na chvíli odpočinout od každodenního shonu. Ať už máte rádi logické hádanky nebo karetní klasiku, najdete zde to pravé pro relaxaci.
         </p>
+        <div className="mt-6 p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-sm text-indigo-800 leading-relaxed">
+          <strong>💡 Proč si zahrát?</strong> Krátká herní pauza prokazatelně snižuje stres a pomáhá vyčistit hlavu. Naše hry jsou zdarma, bez nutnosti instalace a optimalizované pro mobily i počítače.
+        </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-6">
