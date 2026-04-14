@@ -18,6 +18,30 @@ const KVÍZY = [
     time: "3 minuty",
     color: "from-pink-50 to-rose-100",
   },
+  {
+    slug: "jak-zvladas-stres",
+    title: "Jak zvládáš rodičovský stres?",
+    description: "Záchvaty vzteku, rozlité džusy, ztracené ponožky... Zjisti jestli jsi zenový guru, sopka, nebo superhrdina.",
+    emoji: "😤",
+    time: "3 minuty",
+    color: "from-orange-50 to-amber-100",
+  },
+  {
+    slug: "ranni-vstávani",
+    title: "Přežiješ ranní vstávání s dětmi?",
+    description: "Chaos, slzy, ztracená bota a 5 minut do odjezdu. Jak to zvládáš? Otestuj svůj ranní survival mode.",
+    emoji: "☀️",
+    time: "2 minuty",
+    color: "from-yellow-50 to-lime-100",
+  },
+  {
+    slug: "rodic-v-krizi",
+    title: "Jaký jsi rodič v krizi?",
+    description: "Dítě pláče, všechno jde špatně a ty... co uděláš? Zjisti svůj krizový archetyp.",
+    emoji: "🚨",
+    time: "3 minuty",
+    color: "from-purple-50 to-violet-100",
+  },
 ];
 
 export default function KvizPage() {
@@ -59,13 +83,6 @@ export default function KvizPage() {
             </div>
           </Link>
         ))}
-
-        {/* Placeholder pro další kvízy */}
-        <div className="rounded-2xl border-2 border-dashed border-[var(--border)] p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
-          <span className="text-4xl mb-3">🔜</span>
-          <p className="font-serif font-bold text-[var(--ink)] mb-1">Další kvíz brzy</p>
-          <p className="text-sm text-[var(--muted)]">Pracujeme na dalších testech pro rodiče</p>
-        </div>
       </div>
 
     </div>
